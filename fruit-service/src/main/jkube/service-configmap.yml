@@ -1,6 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: ${project.artifactId}-${db.type}-configmap
-data:
-  java-options: "-Dspring.profiles.active=${profile.name}"
