@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.sleuth.Span;
 import org.springframework.cloud.sleuth.Tracer;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -232,6 +231,8 @@ public class FruitController {
         try {
 			TimeUnit.MILLISECONDS.sleep(SetupController.getDelayInMilliseconds());
 		} catch (InterruptedException e) {
+            // deepcode ignore catchingInterruptedExceptionWithoutInterrupt: NOT IMPORTANT
+            LOG.error("Error while sleeping");
 		}
     }
 }
