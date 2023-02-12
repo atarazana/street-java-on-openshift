@@ -1,0 +1,60 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  annotations:
+    image.openshift.io/triggers: >-
+      [{"from":{"kind":"ImageStreamTag","name":"events-database:latest"},"fieldPath":"spec.template.spec.containers[?(@.name==\"events-database\")].image"}]
+    openshift.io/generated-by: OpenShiftNewApp
+  name: {{ include "fruit-service-db.fullname" . }}
+  labels:
+    {{- include "fruit-service.labels" . | nindent 4 }}
+    app.openshift.io/runtime: postgresql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      deployment: {{ include "fruit-service-db.fullname" . }}
+  template:
+    metadata:
+      labels:
+        deployment: {{ include "fruit-service-db.fullname" . }}
+    spec:
+      containers:
+        - name: database
+          image: {{ .Values.dataBaseImage }}
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+          env:
+            - name: POSTGRESQL_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "fruit-service-db.fullname" . }}-secret
+                  key: DB_NAME
+            - name: POSTGRESQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "fruit-service-db.fullname" . }}-secret
+                  key: DB_PASSWORD
+            - name: POSTGRESQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "fruit-service-db.fullname" . }}-secret
+                  key: DB_USER
+          resources:
+            limits:
+              cpu: 500m
+              memory: 250Mi
+            requests:
+              cpu: 200m
+              memory: 150Mi
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      schedulerName: default-scheduler
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600

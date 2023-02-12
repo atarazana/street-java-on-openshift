@@ -1,0 +1,308 @@
+---
+# Source: street-java/charts/fruit-gateway/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: fruit-gateway
+  labels:
+    helm.sh/chart: fruit-gateway-0.0.1
+    app.kubernetes.io/name: fruit-gateway
+    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/version: "0.0.1"
+    app.kubernetes.io/managed-by: Helm
+---
+# Source: street-java/charts/fruit-service/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: fruit-service
+  labels:
+    helm.sh/chart: fruit-service-0.0.1
+    app.kubernetes.io/name: fruit-service
+    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/version: "0.0.1"
+    app.kubernetes.io/managed-by: Helm
+---
+# Source: street-java/charts/fruit-service/templates/secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: fruit-service-db-secret
+type: Opaque
+data:
+  # retrieve the secret data using lookup function and when not exists, return an empty dictionary / map as result
+  DB_USER: "U0hTRWlnbml1U2RkNU55cjRXeW5Qa2lUbHFiRHlTNHg="
+  DB_PASSWORD: "M1BncTJXMHBxU2tmWGpXRnJYMzJUdUpjdkdySU1aV0Y="
+  DB_NAME: "RlJVSVRTREI="
+---
+# Source: street-java/charts/fruit-gateway/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: fruit-gateway
+  labels:
+    helm.sh/chart: fruit-gateway-0.0.1
+    app.kubernetes.io/name: fruit-gateway
+    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/version: "0.0.1"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: fruit-gateway
+    app.kubernetes.io/instance: RELEASE-NAME
+---
+# Source: street-java/charts/fruit-service/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: fruit-service
+  labels:
+    helm.sh/chart: fruit-service-0.0.1
+    app.kubernetes.io/name: fruit-service
+    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/version: "0.0.1"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: fruit-service
+    app.kubernetes.io/instance: RELEASE-NAME
+---
+# Source: street-java/charts/fruit-gateway/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fruit-gateway
+  labels:
+    helm.sh/chart: fruit-gateway-0.0.1
+    app.kubernetes.io/name: fruit-gateway
+    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/version: "0.0.1"
+    app.kubernetes.io/managed-by: Helm
+    app.openshift.io/runtime: quarkus
+  annotations:
+    app.openshift.io/connects-to: '[{"apiVersion":"apps/v1","kind":"Deployment","name":"fruit-service"}]'
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: fruit-gateway
+      app.kubernetes.io/instance: RELEASE-NAME
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: fruit-gateway
+        app.kubernetes.io/instance: RELEASE-NAME
+    spec:
+      serviceAccountName: fruit-gateway
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: fruit-gateway
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+          image: "quay.io/atarazana/street-java-fruit-gateway@sha256:edbd88c359cf8efa588f56081b865a763cd4bf4e4af3aa76454e0c23d90e7c99"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+---
+# Source: street-java/charts/fruit-service/templates/deployment-db.yaml
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  annotations:
+    image.openshift.io/triggers: >-
+      [{"from":{"kind":"ImageStreamTag","name":"events-database:latest"},"fieldPath":"spec.template.spec.containers[?(@.name==\"events-database\")].image"}]
+    openshift.io/generated-by: OpenShiftNewApp
+  name: fruit-service-db
+  labels:
+    helm.sh/chart: fruit-service-0.0.1
+    app.kubernetes.io/name: fruit-service
+    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/version: "0.0.1"
+    app.kubernetes.io/managed-by: Helm
+    app.openshift.io/runtime: postgresql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      deployment: fruit-service-db
+  template:
+    metadata:
+      labels:
+        deployment: fruit-service-db
+    spec:
+      containers:
+        - name: database
+          image: registry.redhat.io/rhel8/postgresql-10:latest
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+          env:
+            - name: POSTGRESQL_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: fruit-service-db-secret
+                  key: DB_NAME
+            - name: POSTGRESQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: fruit-service-db-secret
+                  key: DB_PASSWORD
+            - name: POSTGRESQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: fruit-service-db-secret
+                  key: DB_USER
+          resources:
+            limits:
+              cpu: 500m
+              memory: 250Mi
+            requests:
+              cpu: 200m
+              memory: 150Mi
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      schedulerName: default-scheduler
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600
+---
+# Source: street-java/charts/fruit-service/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fruit-service
+  labels:
+    helm.sh/chart: fruit-service-0.0.1
+    app.kubernetes.io/name: fruit-service
+    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/version: "0.0.1"
+    app.kubernetes.io/managed-by: Helm
+    app.openshift.io/runtime: spring
+  annotations:
+    app.openshift.io/connects-to: '[{"apiVersion":"apps/v1","kind":"Deployment","name":"fruit-service-db"}]'
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: fruit-service
+      app.kubernetes.io/instance: RELEASE-NAME
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: fruit-service
+        app.kubernetes.io/instance: RELEASE-NAME
+    spec:
+      serviceAccountName: fruit-service
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: fruit-service
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+          image: "quay.io/atarazana/street-java-fruit-service@sha256:dc5ec200b5389edd9582a532488d12aadc4d637af4e96e9c06d19c3bb6a05fe3"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+---
+# Source: street-java/charts/fruit-gateway/templates/tests/test-connection.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "fruit-gateway-test-connection"
+  labels:
+    helm.sh/chart: fruit-gateway-0.0.1
+    app.kubernetes.io/name: fruit-gateway
+    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/version: "0.0.1"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['fruit-gateway:8080']
+  restartPolicy: Never
+---
+# Source: street-java/charts/fruit-service/templates/tests/test-connection.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "fruit-service-test-connection"
+  labels:
+    helm.sh/chart: fruit-service-0.0.1
+    app.kubernetes.io/name: fruit-service
+    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/version: "0.0.1"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['fruit-service:8080']
+  restartPolicy: Never

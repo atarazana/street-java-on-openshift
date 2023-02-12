@@ -57,6 +57,7 @@ public class MavenWrapperDownloader
 
         // If the maven-wrapper.properties exists, read it and check if it contains a custom
         // wrapperUrl parameter.
+        // file deepcode ignore PT: <please specify a reason of ignoring this>
         File mavenWrapperPropertyFile = new File( baseDirectory, MAVEN_WRAPPER_PROPERTIES_PATH );
         String url = DEFAULT_DOWNLOAD_URL;
         if ( mavenWrapperPropertyFile.exists() )
@@ -133,6 +134,7 @@ public class MavenWrapperDownloader
         URL website = new URL( urlString );
         ReadableByteChannel rbc;
         rbc = Channels.newChannel( website.openStream() );
+        // file deepcode ignore DontCloseInTry: <please specify a reason of ignoring this>
         FileOutputStream fos = new FileOutputStream( destination );
         fos.getChannel().transferFrom( rbc, 0, Long.MAX_VALUE );
         fos.close();

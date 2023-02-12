@@ -1,0 +1,10 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: redhat-gpte-gitea
+  namespace: openshift-marketplace
+spec:
+  sourceType: grpc
+  image: quay.io/atarazana/gitea-catalog:v1.3.2
+  displayName: Red Hat GPTE (Gitea)
+  publisher: Red Hat GPTE

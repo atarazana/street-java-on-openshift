@@ -21,6 +21,7 @@
     <spring-cloud-sleuth-otel.version>1.1.0-M6</spring-cloud-sleuth-otel.version>
     <!-- <release.train.version>2020.0.4</release.train.version> -->
     <!-- <spring-cloud-sleuth-otel.version>1.0.0-M12</spring-cloud-sleuth-otel.version> -->
+    <jkube.version>1.1.0</jkube.version>
 	</properties>
 
   <dependencyManagement>
@@ -186,7 +187,7 @@
       <properties>
         <db.name>FRUITSDB</db.name>
         <db.type>postgresql</db.type>
-        <profile.name>openshift-postgresql</profile.name>
+        <profile.name>openshift</profile.name>
       </properties>
       <build>
         <plugins>

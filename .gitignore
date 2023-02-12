@@ -13,5 +13,6 @@ buildNumber.properties
 .dccache
 
 *.old
+old
 
 .vscode
