@@ -34,6 +34,27 @@ spec:
         - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
+          env:
+            {{- toYaml .Values.env | nindent 12 }}
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "fruit-service-db.fullname" . }}-secret
+                  key: DB_NAME
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "fruit-service-db.fullname" . }}-secret
+                  key: DB_PASSWORD
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "fruit-service-db.fullname" . }}-secret
+                  key: DB_USER
+            - name: DB_HOST
+              value: fruit-service-db
+            - name: DB_PORT
+              value: "5432"
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
@@ -42,12 +63,24 @@ spec:
               protocol: TCP
           livenessProbe:
             httpGet:
-              path: /
-              port: http
+              path: /actuator/health
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 180
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
           readinessProbe:
             httpGet:
-              path: /
-              port: http
+              path: /actuator/health
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 10
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}

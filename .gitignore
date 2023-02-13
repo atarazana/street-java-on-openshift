@@ -16,3 +16,6 @@ buildNumber.properties
 old
 
 .vscode
+
+tmp
+temp

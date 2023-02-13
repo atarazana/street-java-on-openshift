@@ -7,20 +7,24 @@ metadata:
     openshift.io/generated-by: OpenShiftNewApp
   name: {{ include "fruit-service-db.fullname" . }}
   labels:
-    {{- include "fruit-service.labels" . | nindent 4 }}
+    {{- include "fruit-service-db.labels" . | nindent 4 }}
     app.openshift.io/runtime: postgresql
 spec:
   replicas: 1
   selector:
     matchLabels:
-      deployment: {{ include "fruit-service-db.fullname" . }}
+      {{- include "fruit-service-db.selectorLabels" . | nindent 6 }}
+      # deployment: {{ include "fruit-service-db.fullname" . }}
   template:
     metadata:
       labels:
-        deployment: {{ include "fruit-service-db.fullname" . }}
+        {{- include "fruit-service-db.selectorLabels" . | nindent 8 }}
+        # deployment: {{ include "fruit-service-db.fullname" . }}
     spec:
       containers:
         - name: database
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
           image: {{ .Values.dataBaseImage }}
           ports:
             - containerPort: 5432
@@ -48,11 +52,32 @@ spec:
             requests:
               cpu: 200m
               memory: 150Mi
+          readinessProbe:
+            exec:
+              command:
+                - /usr/libexec/check-container
+            initialDelaySeconds: 5
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          livenessProbe:
+            exec:
+              command:
+                - /usr/libexec/check-container
+                - '--live'
+            initialDelaySeconds: 120
+            timeoutSeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          terminationMessagePath: /dev/termination-log
           imagePullPolicy: IfNotPresent
       restartPolicy: Always
       terminationGracePeriodSeconds: 30
       dnsPolicy: ClusterFirst
-      securityContext: {}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       schedulerName: default-scheduler
   strategy:
     type: Recreate

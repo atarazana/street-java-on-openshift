@@ -6,7 +6,8 @@ replicaCount: 1
 
 image:
   repository: quay.io/atarazana/street-java-fruit-service@sha256
-  pullPolicy: IfNotPresent
+  # pullPolicy: IfNotPresent
+  pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
   tag: "153fbb6f4712bc2a40af298d56e93a897644d6dacaae773af4083bb450a53f96"
 
@@ -70,11 +71,11 @@ resources:
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
   # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
   limits:
-    cpu: 100m
-    memory: 128Mi
+    cpu: 500m
+    memory: 512Mi
   requests:
     cpu: 100m
-    memory: 128Mi
+    memory: 512Mi
 
 autoscaling:
   enabled: false
@@ -89,15 +90,9 @@ tolerations: []
 
 affinity: {}
 
-environment:
-  - name: DB_HOST
-    value: fruit-service-db
-  - name: DB_PORT
-    value: 5432
-  - name: DB_NAME
-    value: FRUITSDB
-  - name: JAVA_OPTIONS
-    value: "-Dspring.profiles.active=openshift"
+env:
+  - name: JAVA_OPTS
+    value: "-Dspring.profiles.active=openshift -Xms192m -Xmx768m"
   - name: OTL_ENDPOINT
     value: http://localhost:4317
 
