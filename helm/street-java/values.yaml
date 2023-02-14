@@ -6,13 +6,20 @@ fruit-gateway:
   enabled: true
   image:
     repository: quay.io/atarazana/street-java-fruit-gateway@sha256
-    tag: "edbd88c359cf8efa588f56081b865a763cd4bf4e4af3aa76454e0c23d90e7c99"
-  environment:
+    tag: "92af73056aa96f032a21be97f33a2e6dd599f4e6169f6d018d9a153e45d19114"
+  env:
   - name: FRUIT_SERVICE_URL
-    value: "http://fruit-service:8080}"
+    value: "http://fruit-service:8080"
+  - name: OTL_ENDPOINT
+    value: http://jaeger-all-in-one-inmemory-collector-headless:4317
 
 fruit-service:
   enabled: false
   image:
     repository: quay.io/atarazana/street-java-fruit-service@sha256
-    tag: "dc5ec200b5389edd9582a532488d12aadc4d637af4e96e9c06d19c3bb6a05fe3"
+    tag: "4cc18eaea6899fb5f3aba0ddaaa0bf29938ac4b30d8b739e68d655071447f3a3"
+  env:
+  - name: JAVA_OPTS
+    value: "-Dspring.profiles.active=openshift -Xms192m -Xmx768m"
+  - name: OTL_ENDPOINT
+    value: http://jaeger-all-in-one-inmemory-collector-headless:4317

@@ -9,7 +9,6 @@ import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -18,10 +17,6 @@ public class RequestHeaderFactory implements ClientHeadersFactory {
 
     @Inject
     Logger log;
-
-    // @Inject
-    // Context context;
-
 
     @Override
     public MultivaluedMap<String, String> update(MultivaluedMap<String, String> inHeaders,

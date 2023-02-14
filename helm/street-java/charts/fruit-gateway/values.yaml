@@ -8,7 +8,7 @@ image:
   repository: quay.io/atarazana/street-java-fruit-gateway@sha256
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "153fbb6f4712bc2a40af298d56e93a897644d6dacaae773af4083bb450a53f96"
+  tag: "4b70587d76955fc02834cad278d39b55a2d96550dc9d460df7a999efc0c4c63a"
 
 imagePullSecrets: []
 nameOverride: ""
@@ -89,8 +89,10 @@ tolerations: []
 
 affinity: {}
 
-environment:
+env:
   - name: FRUIT_SERVICE_URL
-    value: "http://fruit-service:8080}"
+    value: "http://fruit-service:8080"
+  - name: OTL_ENDPOINT
+    value: http://jaeger-all-in-one-inmemory-collector-headless:4317
 
 fruitServiceFullName: fruit-service

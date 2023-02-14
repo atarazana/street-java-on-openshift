@@ -6,10 +6,10 @@ replicaCount: 1
 
 image:
   repository: quay.io/atarazana/street-java-fruit-service@sha256
-  # pullPolicy: IfNotPresent
-  pullPolicy: Always
+  pullPolicy: IfNotPresent
+  # pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "153fbb6f4712bc2a40af298d56e93a897644d6dacaae773af4083bb450a53f96"
+  tag: "1d0423a68b6d896b330ec131bcee2a4e539c3e8b9d6b08ba34f177004af3b54a"
 
 imagePullSecrets: []
 nameOverride: ""
@@ -94,6 +94,6 @@ env:
   - name: JAVA_OPTS
     value: "-Dspring.profiles.active=openshift -Xms192m -Xmx768m"
   - name: OTL_ENDPOINT
-    value: http://localhost:4317
+    value: http://jaeger-all-in-one-inmemory-collector-headless:4318
 
 dataBaseImage: registry.redhat.io/rhel8/postgresql-10:latest

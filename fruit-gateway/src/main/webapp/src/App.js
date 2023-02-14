@@ -58,7 +58,7 @@ class App extends Component {
     return (
       <Container fluid>
         <Row>
-          <Col><h1>System Status</h1></Col>
+          <Col><h1>Street Java Status</h1></Col>
         </Row>
         <Row>
           <Col><Config config={this.state.config} /></Col>
