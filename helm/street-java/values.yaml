@@ -6,7 +6,7 @@ fruit-gateway:
   enabled: true
   image:
     repository: quay.io/atarazana/street-java-fruit-gateway@sha256
-    tag: "92af73056aa96f032a21be97f33a2e6dd599f4e6169f6d018d9a153e45d19114"
+    tag: "3d0787554a289b6235f4cd424a2642ed8d5fed41c627a2fe3b8e0acf14272420"
   env:
   - name: FRUIT_SERVICE_URL
     value: "http://fruit-service:8080"
@@ -17,7 +17,7 @@ fruit-service:
   enabled: false
   image:
     repository: quay.io/atarazana/street-java-fruit-service@sha256
-    tag: "4cc18eaea6899fb5f3aba0ddaaa0bf29938ac4b30d8b739e68d655071447f3a3"
+    tag: "3b8ac59ed5a8ddc5edc60f3e3f64690bc36c25582185923a14b90f906d57bb7c"
   env:
   - name: JAVA_OPTS
     value: "-Dspring.profiles.active=openshift -Xms192m -Xmx768m"
