@@ -1,4 +1,5 @@
 resources:
+  - 0.openshift-distributed-tracing-sub.yaml
   - 1.openshift-gitops-sub.yaml
   - 2.openshift-gitops-patch.yaml
   - 3.openshift-gitops-rbac.yaml

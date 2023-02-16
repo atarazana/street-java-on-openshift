@@ -11,7 +11,7 @@ fruit-gateway:
   - name: FRUIT_SERVICE_URL
     value: "http://fruit-service:8080"
   - name: OTL_ENDPOINT
-    value: http://jaeger-all-in-one-inmemory-collector-headless:4317
+    value: http://jaeger-all-in-one-inmemory-collector-headless.street-java-infra:4317
 
 fruit-service:
   enabled: false
@@ -22,4 +22,4 @@ fruit-service:
   - name: JAVA_OPTS
     value: "-Dspring.profiles.active=openshift -Xms192m -Xmx768m"
   - name: OTL_ENDPOINT
-    value: http://jaeger-all-in-one-inmemory-collector-headless:4317
+    value: http://jaeger-all-in-one-inmemory-collector-headless.street-java-infra:4317
