@@ -1,0 +1,163 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: guide-setup-job
+  namespace: street-java-infra
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: guide-setup
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - '*'
+  verbs:
+  - '*'
+- apiGroups:
+  - apps
+  resources:
+  - '*'
+  verbs:
+  - '*'
+- apiGroups:
+  - image.openshift.io
+  resources:
+  - '*'
+  verbs:
+  - '*'
+- apiGroups:
+  - route.openshift.io
+  resources:
+  - '*'
+  verbs:
+  - '*'
+- apiGroups:
+  - apps.openshift.io
+  resources:
+  - '*'
+  verbs:
+  - '*'
+- apiGroups:
+  - monitoring.coreos.com
+  resources:
+  - '*'
+  verbs:
+  - '*'
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: guide-setup
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: guide-setup
+subjects:
+- kind: ServiceAccount
+  name: guide-setup-job
+  namespace: street-java-infra
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: guide-setup-self-provisioner
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: self-provisioner
+subjects:
+- kind: ServiceAccount
+  name: guide-setup-job
+  namespace: street-java-infra
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: guide-setup-files
+  namespace: street-java-infra
+data:
+  limit-range.yaml: |
+    kind: LimitRange
+    apiVersion: v1
+    metadata:
+      name: guide-resource-limits
+    spec:
+      limits:
+        - type: Container
+          max:
+            cpu: '100m'
+            memory: 100Mi
+          default:
+            cpu: 50m
+            memory: 50Mi
+          defaultRequest:
+            cpu: 50m
+            memory: 50Mi
+        - type: Pod
+          max:
+            cpu: '100m'
+            memory: 100Mi  
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: street-java-infra
+  name: guide-setup
+spec:
+  backoffLimit: 10
+  template:
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: worker
+        securityContext:
+          capabilities:
+            drop:
+              - ALL
+          allowPrivilegeEscalation: false
+        image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
+        env:
+        - name: COUNT
+          value: "30"
+        - name: SLEEP_TIME
+          value: "30"
+        - name: PROJECT_BASE_NAME
+          value: street-java
+        - name: PASSWORD
+          value: openshift
+        command:
+        - /bin/sh
+        - '-c'
+        args:
+        - |-
+          echo "------------------------------"
+          echo " Setting Up Guide Resources"
+          for i in $(seq 1 $COUNT); 
+          do
+            USERNAME=user${i}
+            PROJECT_NAME=${PROJECT_BASE_NAME}-${USERNAME}
+            echo ">>> Creating project ${PROJECT_NAME}"
+            oc new-project ${PROJECT_NAME}
+            oc adm policy add-role-to-user edit ${USERNAME} -n ${PROJECT_NAME}
+            echo ">>> Deleting limitrange/${PROJECT_NAME}-core-resource-limits"
+            oc delete limitrange/${PROJECT_NAME}-core-resource-limits -n ${PROJECT_NAME}
+            echo ">>> Creating limitrange with /setup-files/limit-range.yaml"
+            oc create -n ${PROJECT_NAME} -f /setup-files/limit-range.yaml
+          done
+          echo "------------------------------"
+        imagePullPolicy: Always
+        volumeMounts:
+        - name: guide-setup-files-volume
+          mountPath: /setup-files
+      restartPolicy: Never
+      serviceAccountName: guide-setup-job
+      volumes:
+      - name: guide-setup-files-volume
+        configMap:
+          name: guide-setup-files
