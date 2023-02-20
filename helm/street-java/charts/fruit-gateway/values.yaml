@@ -2,6 +2,10 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+gitUri: https://github.com/atarazana/street-java-on-openshift
+gitRef: main
+gitContextDir: fruit-gateway
+
 replicaCount: 1
 
 image:

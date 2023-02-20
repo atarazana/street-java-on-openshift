@@ -60,3 +60,17 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Create webhook secrets 
+*/}}
+{{- define "fruit-gateway.genericWebhookSecret" -}}
+{{- if (include "fruit-gateway.fullname" .) }}
+{{- printf "%s-generic-webhook-secret" (include "fruit-gateway.fullname" .) }}
+{{- end }}
+{{- end }}
+{{- define "fruit-gateway.githubWebhookSecret" -}}
+{{- if (include "fruit-gateway.fullname" .) }}
+{{- printf "%s-github-webhook-secret" (include "fruit-gateway.fullname" .) }}
+{{- end }}
+{{- end }}

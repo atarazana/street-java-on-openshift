@@ -278,7 +278,7 @@ spec:
               - default
           ALLOW_PULLS_WITHOUT_STRICT_LOGGING: false
           BROWSER_API_CALLS_XHR_ONLY: false
-          CREATE_PRIVATE_REPO_ON_PUSH: false
+          CREATE_PRIVATE_REPO_ON_PUSH: true
           SUPER_USERS:
               - quayadmin
           AUTHENTICATION_TYPE: Database
