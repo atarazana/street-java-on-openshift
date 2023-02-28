@@ -1,11 +1,23 @@
 resources:
-  - 0.openshift-distributed-tracing-sub.yaml
-  - 1.openshift-gitops-sub.yaml
-  - 2.openshift-gitops-patch.yaml
-  - 3.openshift-gitops-rbac.yaml
-  - 4.openshift-gitops-projects.yaml
-  - 5.openshift-pipelines-sub.yaml
-  - 6.guide-users-rbac.yaml
-  - 7.quay.yaml
-  - 8.web-terminal.yaml
-  - 9.guide-setup-job.yaml
+  # - 0.openshift-distributed-tracing-sub.yaml
+  # - 1.openshift-gitops-sub.yaml
+  # - 2.openshift-gitops-patch.yaml
+  # - 3.openshift-gitops-rbac.yaml
+  # - 4.openshift-gitops-projects.yaml
+  # - 5.openshift-pipelines-sub.yaml
+  # - 6.guide-users-rbac.yaml
+  # - 7.quay.yaml
+  # - 8.web-terminal.yaml
+  # - 9.guide-setup-job.yaml
+  - 10.openshift-logging-sub.yaml
+
+# patchesJson6902:
+# - target:
+#     group: ""
+#     version: v1
+#     kind: Namespace
+#     name: deploy
+#   patch: |-
+#     - op: replace
+#       path: /spec/replicas
+#       value: 1
