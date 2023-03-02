@@ -4,6 +4,7 @@ import com.redhat.fruit.gateway.beans.Config;
 import com.redhat.fruit.gateway.beans.Fruit;
 
 import java.util.List;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -19,6 +20,7 @@ import javax.ws.rs.core.Response;
  */
 @Path("/api")
 public interface ApiResource {
+    public static String FORCED_ERROR = "Forced error to find in jaeger and elastic search";
 
     @Path("fruits")
     @GET
@@ -44,5 +46,5 @@ public interface ApiResource {
     @Path("config")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    Config configGet();
+    Config configGet() throws Exception;
 }

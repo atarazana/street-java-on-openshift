@@ -1,8 +1,10 @@
 package com.redhat.fruit.gateway;
 
 import java.util.List;
+import java.util.Random;
 
 import javax.inject.Inject;
+import javax.transaction.NotSupportedException;
 import javax.ws.rs.core.Response;
 
 import com.redhat.fruit.gateway.beans.Check;
@@ -16,6 +18,8 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
 
 public class ApiImpl implements ApiResource {
+    static Random random = new Random();
+
     Logger logger = Logger.getLogger(ApiImpl.class);
 
     @ConfigProperty(name = "config.service.name", defaultValue = "fruit-gateway-svc")
@@ -50,7 +54,13 @@ public class ApiImpl implements ApiResource {
     }
 
     @Override
-    public Config configGet() {
+    public Config configGet() throws NotSupportedException {
+        // Randomly send and error then find it with jaeger and also by monitoring then instruct to add a gauge
+        if (random.nextFloat() > 0.8) {
+            logger.error(FORCED_ERROR);
+            throw new NotSupportedException(FORCED_ERROR);
+        }
+
         Check[] checks = new Check[1];
         String status = "OPERATIONAL";
         try {
