@@ -55,11 +55,7 @@ public class ApiImpl implements ApiResource {
 
     @Override
     public Config configGet() throws NotSupportedException {
-        // Randomly send and error then find it with jaeger and also by monitoring then instruct to add a gauge
-        if (random.nextFloat() > 0.8) {
-            logger.error(FORCED_ERROR);
-            throw new NotSupportedException(FORCED_ERROR);
-        }
+        if (!genericHealthCheck()) logger.error("GENERAL ERROR");
 
         Check[] checks = new Check[1];
         String status = "OPERATIONAL";
@@ -84,6 +80,14 @@ public class ApiImpl implements ApiResource {
         }
         
         return new Config(configServiceName, new Status(status, checks));
+    }
+
+    private boolean genericHealthCheck() throws NotSupportedException {
+        if (random.nextFloat() > 0.8) {
+            logger.error(FORCED_ERROR);
+            throw new NotSupportedException(FORCED_ERROR);
+        }
+        return true;
     }
 
 }
