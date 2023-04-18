@@ -9,15 +9,15 @@ const Config = ({ config }) => {
         <Container fluid>
             <Row>
                 <Col>
-                    <Alert variant={config.status.status === 'OPERATIONAL' ? 'success' : 'danger'}>
-                    <Alert.Heading><span class="fw-bold">Gateway</span> '{config.name}' <span class="fw-bold">status</span> {config.status.status}</Alert.Heading>
+                    <Alert variant={config?.status?.status === 'OPERATIONAL' ? 'success' : 'danger'}>
+                    <Alert.Heading><span class="fw-bold">Gateway</span> '{config?.name}' <span class="fw-bold">status</span> {config?.status?.status}</Alert.Heading>
                     </Alert>
                 </Col>
             </Row>
             <Row>
                 <Col><h2>Backend Services</h2></Col>
             </Row>
-            {config.status.checks.map((check) => (
+            {config?.status?.checks.map((check) => (
             <Row>
                 <Col>
                     <Alert variant={check.status === 'UP' ? 'success' : 'danger'}>
