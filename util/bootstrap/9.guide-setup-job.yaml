@@ -145,6 +145,7 @@ spec:
             echo ">>> Creating project ${PROJECT_NAME}"
             oc new-project ${PROJECT_NAME}
             oc adm policy add-role-to-user edit ${USERNAME} -n ${PROJECT_NAME}
+            oc adm policy add-role-to-user monitoring-edit ${USERNAME} -n ${PROJECT_NAME}
             echo ">>> Deleting limitrange/${PROJECT_NAME}-core-resource-limits"
             oc delete limitrange/${PROJECT_NAME}-core-resource-limits -n ${PROJECT_NAME}
             echo ">>> Creating limitrange with /setup-files/limit-range.yaml"

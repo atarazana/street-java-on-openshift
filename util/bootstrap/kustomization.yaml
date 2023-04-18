@@ -10,6 +10,7 @@ resources:
   - 8.web-terminal.yaml
   - 9.guide-setup-job.yaml
   - 10.openshift-logging-sub.yaml
+  - 11.cluster-monitoring.yaml
 
 # patchesJson6902:
 # - target:
