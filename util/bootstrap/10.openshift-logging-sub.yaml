@@ -71,7 +71,7 @@ spec:
           memory: 2Gi
       storage:
         size: 200G
-        storageClassName: gp2
+        storageClassName: gp3-csi
       nodeCount: 3
       redundancyPolicy: SingleRedundancy
     retentionPolicy:
