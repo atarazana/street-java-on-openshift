@@ -14,6 +14,8 @@ import com.redhat.fruit.gateway.beans.Fruit;
 import com.redhat.fruit.gateway.beans.Status;
 import com.redhat.fruit.gateway.restclient.FruitService;
 
+import io.micrometer.core.instrument.MeterRegistry;
+
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
