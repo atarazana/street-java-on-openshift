@@ -61,11 +61,9 @@ public class ApiImpl implements ApiResource {
         String status = "OPERATIONAL";
         try {
             Status fruitServiceStatus = fruitService.health();
-            //checks = fruitServiceStatus.getChecks();
             logger.info(String.format("FruitService status: %s",fruitServiceStatus.getStatus()));
             String fruitServiceName = fruitService.serviceName();
             logger.info(String.format("FruitService name: %s",fruitServiceName));
-            //checks = fruitServiceStatus.getChecks();
             if (!"UP".equals(fruitServiceStatus.getStatus())) {
                 status = "DEGRADED";
                 checks[0] = new Check(fruitServiceName, "DOWN");
