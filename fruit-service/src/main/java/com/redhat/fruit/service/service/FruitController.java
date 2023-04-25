@@ -42,10 +42,13 @@ import com.redhat.fruit.service.exception.UnsupportedMediaTypeException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Random;
 import java.util.Spliterator;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+
+import javax.transaction.NotSupportedException;
 
 import io.micrometer.core.instrument.Metrics;
 
@@ -58,6 +61,8 @@ public class FruitController {
     private static final Logger LOG = LoggerFactory.getLogger(FruitController.class);
     
     private final FruitRepository repository;
+
+    private static Random random = new Random();
 
     @Autowired
     private Tracer tracer;
@@ -95,9 +100,17 @@ public class FruitController {
     }
 
     @GetMapping("/api/info/name")
-    public String getServiceName() {
+    public String getServiceName() throws Exception {
         Span newSpan = tracer.nextSpan().name("getServiceName").start();
+        String name = generateName();
         newSpan.end();
+        return name;
+    }
+
+    private String generateName() throws NotSupportedException {
+        if (random.nextFloat() > 0.8) {
+            throw new NotSupportedException();
+        }
         return "fruit-service";
     }
 

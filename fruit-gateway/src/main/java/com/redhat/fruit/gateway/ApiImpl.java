@@ -1,7 +1,6 @@
 package com.redhat.fruit.gateway;
 
 import java.util.List;
-import java.util.Random;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -21,7 +20,6 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
 
 public class ApiImpl implements ApiResource {
-    static Random random = new Random();
 
     Logger logger = Logger.getLogger(ApiImpl.class);
 
@@ -58,10 +56,6 @@ public class ApiImpl implements ApiResource {
 
     @Override
     public Config configGet() throws NotSupportedException {
-        if (!genericHealthCheck()) {
-            logger.error(FORCED_ERROR);
-            throw new NotSupportedException(FORCED_ERROR);
-        }
 
         Check[] checks = new Check[1];
         String status = "OPERATIONAL";
@@ -87,12 +81,4 @@ public class ApiImpl implements ApiResource {
         
         return new Config(configServiceName, new Status(status, checks));
     }
-
-    private boolean genericHealthCheck() throws NotSupportedException {
-        if (random.nextFloat() > 0.8) {
-            return false;
-        }
-        return true;
-    }
-
 }

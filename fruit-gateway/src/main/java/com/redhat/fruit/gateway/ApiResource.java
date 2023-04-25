@@ -21,6 +21,8 @@ import javax.ws.rs.core.Response;
 @Path("/api")
 public interface ApiResource {
     public static String FORCED_ERROR = "Forced error to find in jaeger and elastic search";
+    public static String ACC_ERRORS_COUNT_NAME = "acc_errors_count";
+    public static String ACC_ERRORS_COUNT_DESC = "Accumulated errors count";
 
     @Path("fruits")
     @GET
