@@ -12,6 +12,9 @@ data:
         requests:
           cpu: 200m 
           memory: 2Gi
+    alertmanager:
+      enabled: true 
+      enableAlertmanagerConfig: true 
 ---
 apiVersion: v1
 kind: ConfigMap
