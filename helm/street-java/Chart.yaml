@@ -17,4 +17,6 @@ appVersion: "1.0.0"
 
 dependencies:
   - name: fruit-gateway
+    condition: fruit-gateway.enabled
   - name: fruit-service
+    condition: fruit-gateway.enabled
