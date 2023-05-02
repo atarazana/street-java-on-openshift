@@ -2,7 +2,6 @@ package com.redhat.fruit.gateway;
 
 import java.util.List;
 
-import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.transaction.NotSupportedException;
 import javax.ws.rs.core.Response;
