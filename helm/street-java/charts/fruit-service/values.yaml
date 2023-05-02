@@ -9,7 +9,7 @@ image:
   pullPolicy: IfNotPresent
   # pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "1d0423a68b6d896b330ec131bcee2a4e539c3e8b9d6b08ba34f177004af3b54a"
+  tag: "6e2b2ff3e855be2fd60d1313fc04ace27d62d4fc55f2388a965a1d22baa07ed8"
 
 imagePullSecrets: []
 nameOverride: ""
@@ -94,6 +94,6 @@ env:
   - name: JAVA_OPTS
     value: "-Dspring.profiles.active=openshift -Xms192m -Xmx768m"
   - name: OTL_ENDPOINT
-    value: http://jaeger-all-in-one-inmemory-collector-headless:4318
+    value: http://jaeger-all-in-one-inmemory-collector-headless.street-java-infra:4317
 
 dataBaseImage: registry.redhat.io/rhel8/postgresql-10:latest
