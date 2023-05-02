@@ -19,4 +19,4 @@ dependencies:
   - name: fruit-gateway
     condition: fruit-gateway.enabled
   - name: fruit-service
-    condition: fruit-gateway.enabled
+    condition: fruit-service.enabled
