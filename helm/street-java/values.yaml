@@ -15,7 +15,7 @@ fruit-gateway:
     value: http://jaeger-all-in-one-inmemory-collector-headless.street-java-infra:4317
 
 fruit-service:
-  enabled: false
+  enabled: true
   image:
     repository: quay.io/atarazana/street-java-fruit-service@sha256
     tag: "6e2b2ff3e855be2fd60d1313fc04ace27d62d4fc55f2388a965a1d22baa07ed8"
