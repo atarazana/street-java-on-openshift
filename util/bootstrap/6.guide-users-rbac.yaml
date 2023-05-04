@@ -45,6 +45,7 @@ rules:
   - ''
   resources:
   - 'limitranges'
+  - 'resourcequotas'
   verbs:
   - '*'
 ---
