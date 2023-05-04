@@ -1,0 +1,321 @@
+= Demo Script
+include::_attributes.adoc[]
+
+[#preparation]
+== Preparation
+
+Open three terminal windows, referred to as *T1*, *T2* and *T3* and change to the folder where this repository has been cloned.
+
+Run this command in *T1*:
+
+[.console-input]
+[source,bash, subs="+attributes"]
+----
+export USERNAME=user4
+export PROJECT_NAME=street-java-${USERNAME}
+export ADMIN_USER=admin
+export PASSWORD=vNSzXZntmmVV4OnW
+export SERVER=https://api.cluster-kgbf5.kgbf5.sandbox2412.opentlc.com:6443
+
+oc login -u ${ADMIN_USER} -p ${PASSWORD} --insecure-skip-tls-verify=false --server=${SERVER}
+----
+
+Run this command in *T2* and *T3* before running the demo:
+
+[.console-input]
+[source,bash, subs="+attributes"]
+----
+export USERNAME=user4
+export PROJECT_NAME=street-java-${USERNAME}
+export PASSWORD=Ci6RgqL0LTGOdS6G
+export SERVER=https://api.cluster-kgbf5.kgbf5.sandbox2412.opentlc.com:6443
+
+export REPOSITORY="image-registry.openshift-image-registry.svc:5000/${PROJECT_NAME}/fruit-gateway"
+export TAG=1.0.0-SNAPSHOT
+
+export KUBECONFIG=~/.kube/config-street-java-user
+
+oc login -u ${USERNAME} -p ${PASSWORD} --server=${SERVER} --insecure-skip-tls-verify=false
+
+oc project ${PROJECT_NAME}
+----
+
+Run this command in *T2* to create a resource quota limiting the number of `Deployments` this way you will show one of the typical problems a developer has to face in a kubernetes cluster.
+
+[source,sh,attributes]
+----
+oc apply -n ${PROJECT_NAME} -f - <<EOF
+kind: ResourceQuota
+apiVersion: v1
+metadata:
+    name: guide-resource-quota
+spec:
+  hard:
+    count/deployments.apps: '2'
+EOF
+----
+
+[#checking-in]
+== Checking in 
+
+You've been assigned the task of developing a gateway and UI for a backend that's already been developed and is deployed as a Helm chart. Eventually you will also deploy your application as part of the same chart, as a dependency.
+
+Go to *T2* and deploy the chart.
+
+NOTE: The chart already contains fruit-gateway but we're going to fake it's not developed yet by disabling it.
+
+[source,sh,attributes]
+----
+helm install --set fruit-gateway.enabled=false street-java helm/street-java
+----
+
+Open the web console and log in with the non-admin user and open the topology view.
+
+[#round-1]
+== Round 1 - Fight in localhost 
+
+We're going to run our gateway locally first, hence localhost.
+
+Go to *T1* and run this command that will port-forward all services in ${PROJECT} and street-java-infra in bulk and change `/etc/hosts`
+
+NOTE: Wait until fruit-service is been deployed.
+
+NOTE: Explain what kubefwd does...
+
+[source,sh,attributes]
+----
+sudo kubefwd svc -n ${PROJECT_NAME} -n street-java-infra
+----
+
+Go to *T3* and:
+
+[source,sh,attributes]
+----
+cd fruit-gateway
+----
+
+Run the quarkus app in dev mode... show the UI, it fails... no problem, it's just to show how we start developing our gateway.
+
+[source,sh,attributes]
+----
+mvn quarkus:dev
+----
+
+[#round-2]
+== Round 2 - Fight in two places at the same time 
+
+Now we have evolved and want to use `fruit-service` running in our project and `jaeger` in namespace `street-java-infra`. Show the app working... connecting to fruit-service running in the cluster... and also show jaeger running in OpenShift.
+ 
+NOTE: We run in the production profile because we have port-forwarded the services and are available locally!
+
+NOTE: Mention that jaeger is installed via operator and supported
+
+In *T3*:
+
+[source,sh,attributes]
+----
+mvn quarkus:dev -Dquarkus.profile=prod
+----
+
+Open jaeger from *T2*:
+
+[source,sh,attributes]
+----
+open https://$(oc get route jaeger-all-in-one-inmemory -n street-java-infra -o jsonpath='{.spec.host}')
+----
+
+[#round-3]
+== Round 3 - Punching to the sky
+
+Type 'q' in *T3* and deploy our app directly from quarkus, using the openshift extension:
+
+NOTE: Don't wait wait too much, and look at BuildConfig and Build.
+
+[source,sh,attributes]
+----
+mvn package -DskipTests -Dquarkus.kubernetes.deploy=true
+----
+
+Run this command to see that the problems is related to LimitRanges...  
+
+[source,sh,attributes]
+----
+oc get events --sort-by='.metadata.creationTimestamp' | grep Failed
+----
+
+Show the limit:
+
+[source,sh,attributes]
+----
+oc get limitranges -o yaml
+----
+
+And delete it!
+
+[source,sh,attributes]
+----
+oc delete limitrange/guide-resource-limits
+----
+
+Try again... This time it will fail because there is a quota limiting the number of deployments to 2.
+
+[source,sh,attributes]
+----
+mvn package -DskipTests -Dquarkus.kubernetes.deploy=true
+----
+
+[source,sh,attributes]
+----
+oc get resourcequota/guide-resource-quota
+----
+
+Run this command to increase quota to 5 deployments:
+
+[source,sh,attributes]
+----
+oc patch  resourcequota/guide-resource-quota  -p '{"spec" : { "hard" : {  "count/deployments.apps" : "5" } } }'
+----
+
+Make a change in `fruit-gateway/src/main/webapp/src/App.js` line 61.
+
+[source,html,attributes]
+----
+<Col><h1>Street Java Status!!!</h1></Col>
+----
+
+Try again, this time it should work. 
+
+[source,sh,attributes]
+----
+mvn package -DskipTests -Dquarkus.kubernetes.deploy=true
+----
+
+Go to the webconsole and show the results...
+
+[#round-4]
+== Round 4 - Helming
+
+The idea is to deploy our app with a helm chart...
+
+Before delete all the resources created... from *T3*.
+
+[source,sh,attributes]
+----
+oc delete -f ./target/kubernetes/openshift.yml
+----
+
+And upgrade the helm chart setting image repository and tag to the ones we had been using before from *T2*.
+
+[source,sh,attributes]
+----
+helm upgrade \
+  --set fruit-gateway.image.repository=${REPOSITORY} \
+  --set fruit-gateway.image.tag=${TAG} \
+ street-java helm/street-java
+----
+
+[#round-5]
+== Round 5 - Fighting near the quay
+
+From *T2*:
+
+[source,sh,attributes]
+----
+./fruit-gateway/image-build.sh
+----
+
+Login in the enterprise Quay registry.
+
+[source,sh,attributes]
+----
+export REGISTRY=$(oc get route myregistry-quay -n quay-system -o jsonpath='{.spec.host}')
+podman login -u ${USERNAME} -p openshift --tls-verify=false ${REGISTRY}
+----
+
+Prepare image name and tag:
+
+[source,sh,attributes]
+----
+export PROJECT_ID=street-java
+export ARTIFACT_VERSION=$(mvn -f fruit-gateway/pom.xml help:evaluate -Dexpression=project.version -q -DforceStdout)
+export ARTIFACT_ID=$(mvn -f fruit-gateway/pom.xml help:evaluate -Dexpression=project.artifactId -q -DforceStdout)
+export GIT_HASH=$(git rev-parse HEAD)
+----
+
+Push the image:
+
+[source,sh,attributes]
+----
+podman tag localhost/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH} ${REGISTRY}/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH}
+podman push --tls-verify=false ${REGISTRY}/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH}
+----
+
+Get the image digest:
+
+[source,sh,attributes]
+----
+export IMAGE_DIGEST_RAW=$(skopeo inspect --tls-verify=false docker://${REGISTRY}/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH} | jq -r .Digest)
+export IMAGE_DIGEST=${IMAGE_DIGEST_RAW:7}
+echo ">>>> IMAGE_DIGEST = ${IMAGE_DIGEST}"
+----
+
+Let's upgrade, this time to use the image in the enterprise registry:
+
+[source,sh,attributes]
+----
+helm upgrade \
+  --set fruit-gateway.image.repository=${REGISTRY}/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}@sha256 \
+  --set fruit-gateway.image.tag=${IMAGE_DIGEST} \
+ street-java helm/street-java
+----
+
+Run this command to see that the problems is related to permissions in the enterprise registry...  
+
+[source,sh,attributes]
+----
+oc get events --sort-by='.metadata.creationTimestamp' | grep Failed
+----
+
+Open quay from *T2* and create a robot account called `cicd`, give it `Read` permission on the `street-java-fruit-gateway` repository:
+
+[source,sh,attributes]
+----
+open https://$(oc get route myregistry-quay -n quay-system -o jsonpath='{.spec.host}')
+----
+
+Paste the password of the robot account:
+
+[source,sh,attributes]
+----
+export CONTAINER_REGISTRY_USERNAME="${USERNAME}+cicd"
+echo "CONTAINER_REGISTRY_PASSWORD: " && read -s CONTAINER_REGISTRY_PASSWORD
+----
+
+Create the secret with the registry credentials of the robot account:
+
+[source,sh,attributes]
+----
+if [ -z "${CONTAINER_REGISTRY_USERNAME}" ] && [ -z "${CONTAINER_REGISTRY_PASSWORD}" ]; then
+    echo "You should provide a value for CONTAINER_REGISTRY_USERNAME and CONTAINER_REGISTRY_PASSWORD"
+else
+oc create -n ${PROJECT_NAME} secret docker-registry street-java-pull-secret \
+  --docker-server=https://${REGISTRY} \
+  --docker-username=${CONTAINER_REGISTRY_USERNAME} \
+  --docker-password=${CONTAINER_REGISTRY_PASSWORD}
+fi
+----
+
+New upgrade, this time with the name of the secret to be used!
+
+[source,sh,attributes]
+----
+helm upgrade \
+  --set fruit-gateway.image.repository=${REGISTRY}/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}@sha256 \
+  --set fruit-gateway.image.tag=${IMAGE_DIGEST} \
+  --set fruit-gateway.imagePullSecrets[0].name=street-java-pull-secret \
+ street-java helm/street-java
+----
+
+[#round-6]
+== Round 6 - On fire
+
