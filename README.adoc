@@ -14,7 +14,7 @@ Run this command in *T1*:
 export USERNAME=user4
 export PROJECT_NAME=street-java-${USERNAME}
 export ADMIN_USER=admin
-export PASSWORD=vNSzXZntmmVV4OnW
+export PASSWORD=xxxxxxxx
 export SERVER=https://api.cluster-kgbf5.kgbf5.sandbox2412.opentlc.com:6443
 
 oc login -u ${ADMIN_USER} -p ${PASSWORD} --insecure-skip-tls-verify=false --server=${SERVER}
@@ -27,7 +27,7 @@ Run this command in *T2* and *T3* before running the demo:
 ----
 export USERNAME=user4
 export PROJECT_NAME=street-java-${USERNAME}
-export PASSWORD=Ci6RgqL0LTGOdS6G
+export PASSWORD=xxxxxxxxx
 export SERVER=https://api.cluster-kgbf5.kgbf5.sandbox2412.opentlc.com:6443
 
 export REPOSITORY="image-registry.openshift-image-registry.svc:5000/${PROJECT_NAME}/fruit-gateway"
