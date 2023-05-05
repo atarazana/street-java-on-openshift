@@ -1,8 +1,31 @@
 = Demo Script
 include::_attributes.adoc[]
 
+:toc:
+
 [#preparation]
 == Preparation
+
+Create a `.env` in the folder where you have cloned this repository copy the next set of variables and fill the empty ones.
+
+[source,sh,attributes]
+----
+export USERNAME=<FILL_ME/>
+export PASSWORD=<FILL_ME/>
+
+export PROJECT_NAME=street-java-${USERNAME}
+
+export ADMIN_USER=<FILL_ME/>
+export ADMIN_PASSWORD=<FILL_ME/>
+
+export CLUSTER_DOMAIN=<FILL_ME/>
+export SERVER=https://api.${CLUSTER_DOMAIN}:6443
+
+export SLACK_WEBHOOK=<FILL_ME/>
+
+export REPOSITORY="image-registry.openshift-image-registry.svc:5000/${PROJECT_NAME}/fruit-gateway"
+export TAG=1.0.0-SNAPSHOT
+----
 
 Open three terminal windows, referred to as *T1*, *T2* and *T3* and change to the folder where this repository has been cloned.
 
@@ -11,14 +34,9 @@ Run this command in *T1*:
 [.console-input]
 [source,bash, subs="+attributes"]
 ----
-export USERNAME=user5
-export PROJECT_NAME=street-java-${USERNAME}
-export ADMIN_USER=admin
-export PASSWORD=xxxxxxxx
-export CLUSTER_DOMAIN=cluster-kgbf5.kgbf5.sandbox2412.opentlc.com
-export SERVER=https://api.${CLUSTER_DOMAIN}:6443
+. .env
 
-oc login -u ${ADMIN_USER} -p ${PASSWORD} --insecure-skip-tls-verify=false --server=${SERVER}
+oc login -u ${ADMIN_USER} -p ${ADMIN_PASSWORD} --insecure-skip-tls-verify=false --server=${SERVER}
 ----
 
 Run this command in *T2* and *T3* before running the demo:
@@ -26,16 +44,7 @@ Run this command in *T2* and *T3* before running the demo:
 [.console-input]
 [source,bash, subs="+attributes"]
 ----
-export USERNAME=user5
-export PROJECT_NAME=street-java-${USERNAME}
-export PASSWORD=xxxxxxxxx
-export CLUSTER_DOMAIN=cluster-kgbf5.kgbf5.sandbox2412.opentlc.com
-export SERVER=https://api.${CLUSTER_DOMAIN}:6443
-
-export SLACK_WEBHOOK=https://hooks.slack.com/services/xxx
-
-export REPOSITORY="image-registry.openshift-image-registry.svc:5000/${PROJECT_NAME}/fruit-gateway"
-export TAG=1.0.0-SNAPSHOT
+. .env
 
 export KUBECONFIG=~/.kube/config-street-java-user
 
@@ -76,7 +85,7 @@ helm install --set fruit-gateway.enabled=false street-java helm/street-java
 Open the web console and log in with the non-admin user and open the topology view.
 
 [#round-1]
-== Round 1 - Fight in localhost 
+== Round 1 - Fight in localhost
 
 We're going to run our gateway locally first, hence localhost.
 
@@ -161,12 +170,14 @@ And delete it!
 oc delete limitrange/guide-resource-limits
 ----
 
-Try again... This time it will fail because there is a quota limiting the number of deployments to 2.
+Try again...
 
 [source,sh,attributes]
 ----
 mvn package -DskipTests -Dquarkus.kubernetes.deploy=true
 ----
+
+This time it will fail because there is a quota limiting the number of deployments to 2.
 
 [source,sh,attributes]
 ----
@@ -212,6 +223,8 @@ And upgrade the helm chart setting image repository and tag to the ones we had b
 
 [source,sh,attributes]
 ----
+echo "REPOSITORY=${REPOSITORY}"
+echo "TAG=${TAG}"
 helm upgrade \
   --set fruit-gateway.image.repository=${REPOSITORY} \
   --set fruit-gateway.image.tag=${TAG} \
@@ -260,10 +273,10 @@ Get the image digest:
 ----
 export IMAGE_DIGEST_RAW=$(skopeo inspect --tls-verify=false docker://${REGISTRY}/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH} | jq -r .Digest)
 export IMAGE_DIGEST=${IMAGE_DIGEST_RAW:7}
-echo ">>>> IMAGE_DIGEST = ${IMAGE_DIGEST}"
+echo "IMAGE_DIGEST = ${IMAGE_DIGEST}"
 ----
 
-Let's upgrade, this time to use the image in the enterprise registry:
+Let's upgrade, *this time to use the image in the enterprise registry*:
 
 [source,sh,attributes]
 ----
@@ -311,6 +324,17 @@ fi
 
 New upgrade, this time with the name of the secret to be used!
 
+[NOTE]
+====
+This is the relevant part this time, with it you set the name of the secret with the credentials to access the enterprise registry: 
+
+[source,properties,attributes]
+----
+fruit-gateway.imagePullSecrets[0].name=street-java-pull-secret
+----
+
+====
+
 [source,sh,attributes]
 ----
 helm upgrade \
@@ -321,9 +345,9 @@ helm upgrade \
 ----
 
 [#round-6]
-== Round 6 - It's fine
+== Round 6 - It's fine / Setting the red line
 
-Let's check the status of the whole system through the `config` api exposed by our gateway. Use *T2* to run this command.
+Let's check the status of the whole system through the `config` api exposed by our gateway. Although maybe you already notice errors in jaeger before... Use *T2* to run this command:
 
 [source,attributes]
 ----
@@ -332,7 +356,7 @@ for i in {1..20}; do curl -s https://$(oc get route/fruit-gateway -o jsonpath='{
 
 This type or errors are not easy to detect, hence defining a behavior baseline will help us detecting abnormal situations. So measuring is key and Prometheus can help us with this.
 
-Let's add an extension to help us generating Prometheus metrics.
+Let's add an extension to help us generating Prometheus metrics. Run this in *T3*.
 
 [source,sh,attributes]
 ----
@@ -359,6 +383,13 @@ As we did in before, let's test locally our changes from *T3*.
 [source,java,attributes]
 ----
 mvn quarkus:dev -Dquarkus.profile=prod
+----
+
+Let's be sure that there are some errors...
+
+[source,attributes]
+----
+for i in {1..20}; do curl -s http://localhost:8080/api/config | jq .status.status ; done
 ----
 
 Open the UI in http://localhost:8080 and run this command to see the count or errors:
@@ -392,7 +423,7 @@ Get the image digest:
 ----
 export IMAGE_DIGEST_RAW=$(skopeo inspect --tls-verify=false docker://${REGISTRY}/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH} | jq -r .Digest)
 export IMAGE_DIGEST=${IMAGE_DIGEST_RAW:7}
-echo ">>>> IMAGE_DIGEST = ${IMAGE_DIGEST}"
+echo "IMAGE_DIGEST_MONITORING = ${IMAGE_DIGEST}"
 ----
 
 Let's upgrade, this time the image should expose metrics:
@@ -406,7 +437,7 @@ helm upgrade \
  street-java helm/street-java
 ----
 
-Let's generate some traffic...
+Let's generate some traffic and errors...
 
 [source,attributes]
 ----
@@ -424,6 +455,8 @@ curl -s https://$(oc get route/fruit-gateway -o jsonpath='{.spec.host}')/q/metri
 == Round 8 - Up one level
 
 Now it's time to expose our metrics using a `ServiceMonitor` so that Prometheus for user defined project can scrape them.
+
+From *T2*:
 
 [source,sh,attributes]
 ----
@@ -523,7 +556,7 @@ spec:
         - apiURL:
             key: slack-webhook-url
             name: slack-webhook-secret
-          channel: '#street-java'
+          channel: '#watchdog'
   route:
     receiver: slack
     repeatInterval: "1m"
