@@ -11,11 +11,12 @@ Run this command in *T1*:
 [.console-input]
 [source,bash, subs="+attributes"]
 ----
-export USERNAME=user4
+export USERNAME=user5
 export PROJECT_NAME=street-java-${USERNAME}
 export ADMIN_USER=admin
 export PASSWORD=xxxxxxxx
-export SERVER=https://api.cluster-kgbf5.kgbf5.sandbox2412.opentlc.com:6443
+export CLUSTER_DOMAIN=cluster-kgbf5.kgbf5.sandbox2412.opentlc.com
+export SERVER=https://api.${CLUSTER_DOMAIN}:6443
 
 oc login -u ${ADMIN_USER} -p ${PASSWORD} --insecure-skip-tls-verify=false --server=${SERVER}
 ----
@@ -25,10 +26,11 @@ Run this command in *T2* and *T3* before running the demo:
 [.console-input]
 [source,bash, subs="+attributes"]
 ----
-export USERNAME=user4
+export USERNAME=user5
 export PROJECT_NAME=street-java-${USERNAME}
 export PASSWORD=xxxxxxxxx
-export SERVER=https://api.cluster-kgbf5.kgbf5.sandbox2412.opentlc.com:6443
+export CLUSTER_DOMAIN=cluster-kgbf5.kgbf5.sandbox2412.opentlc.com
+export SERVER=https://api.${CLUSTER_DOMAIN}:6443
 
 export REPOSITORY="image-registry.openshift-image-registry.svc:5000/${PROJECT_NAME}/fruit-gateway"
 export TAG=1.0.0-SNAPSHOT
@@ -317,5 +319,213 @@ helm upgrade \
 ----
 
 [#round-6]
-== Round 6 - On fire
+== Round 6 - It's fine
 
+Let's check the status of the whole system through the `config` api exposed by our gateway. Use *T2* to run this command.
+
+[source,attributes]
+----
+for i in {1..20}; do curl -s https://$(oc get route/fruit-gateway -o jsonpath='{.spec.host}')/api/config | jq .status.status ; done
+----
+
+This type or errors are not easy to detect, hence defining a behavior baseline will help us detecting abnormal situations. So measuring is key and Prometheus can help us with this.
+
+Let's add an extension to help us generating Prometheus metrics.
+
+[source,sh,attributes]
+----
+mvn quarkus:add-extensions -Dextensions='micrometer-registry-prometheus'
+----
+
+Let's count errors in `fruit-gateway/src/main/java/com/redhat/fruit/gateway/ApiImpl.java`, to do so let's start by injecting the `MeterRegistry` with the following statement.
+
+[source,java,attributes]
+----
+@Inject
+MeterRegistry registry;
+----
+
+Then count error every time we set status as `DEGRADED`.
+
+[source,java,attributes]
+----
+registry.counter(ACC_ERRORS_COUNT_NAME).increment();
+----
+
+As we did in before, let's test locally our changes from *T3*.
+
+[source,java,attributes]
+----
+mvn quarkus:dev -Dquarkus.profile=prod
+----
+
+Open the UI in http://localhost:8080 and run this command to see the count or errors:
+
+[source,sh,attributes]
+----
+curl -s http://localhost:8080/q/metrics | grep -i acc_errors_count
+----
+
+[#round-7]
+== Round 7 - Monitoring in OpenShift
+
+You can stop quarkus dev with `q`. Now from *T2*:
+
+[source,sh,attributes]
+----
+./fruit-gateway/image-build.sh
+----
+
+Push the image:
+
+[source,sh,attributes]
+----
+podman tag localhost/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH} ${REGISTRY}/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH}
+podman push --tls-verify=false ${REGISTRY}/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH}
+----
+
+Get the image digest:
+
+[source,sh,attributes]
+----
+export IMAGE_DIGEST_RAW=$(skopeo inspect --tls-verify=false docker://${REGISTRY}/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH} | jq -r .Digest)
+export IMAGE_DIGEST=${IMAGE_DIGEST_RAW:7}
+echo ">>>> IMAGE_DIGEST = ${IMAGE_DIGEST}"
+----
+
+Let's upgrade, this time the image should expose metrics:
+
+[source,sh,attributes]
+----
+helm upgrade \
+  --set fruit-gateway.image.repository=${REGISTRY}/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}@sha256 \
+  --set fruit-gateway.image.tag=${IMAGE_DIGEST} \
+  --set fruit-gateway.imagePullSecrets[0].name=street-java-pull-secret \
+ street-java helm/street-java
+----
+
+Let's generate some traffic...
+
+[source,attributes]
+----
+for i in {1..20}; do curl -s https://$(oc get route/fruit-gateway -o jsonpath='{.spec.host}')/api/config | jq .status.status ; done
+----
+
+Now let's inspect metrics again:
+
+[source,sh,attributes]
+----
+curl -s https://$(oc get route/fruit-gateway -o jsonpath='{.spec.host}')/q/metrics | grep -i acc_errors_count
+----
+
+[#round-8]
+== Round 8 - Up one level
+
+Now it's time to expose our metrics using a `ServiceMonitor` so that Prometheus for user defined project can scrape them.
+
+[source,sh,attributes]
+----
+oc apply -f - <<EOF
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    k8s-app: prometheus
+  name: fruit-gateway-monitor
+  namespace: ${PROJECT_NAME}
+spec:
+  endpoints:
+    - interval: 30s
+      path: /q/metrics
+      port: http
+  namespaceSelector:
+    matchNames:
+    - ${PROJECT_NAME}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: fruit-gateway
+EOF
+----
+
+Give it 30 sec., then use this link to see our count of errors.
+
+[source,sh,attributes]
+----
+open https://console-openshift-console.apps.${CLUSTER_DOMAIN}/dev-monitoring/ns/${PROJECT_NAME}/metrics
+----
+
+[#round-9]
+== Round 9 - Red Alert
+
+We want do trigger an alert if the number of errors in a minute is greater than 4. Let's create a `PrometheusRule` to do so.
+
+From *T2*:
+
+[source,sh,attributes]
+----
+oc apply -f - <<EOF
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: fruit-gateway-alert-rules
+  namespace: ${PROJECT_NAME}
+  labels:
+    openshift.io/prometheus-rule-evaluation-scope: leaf-prometheus
+spec:
+  groups:
+  - name: fruit-gateway-monitoring
+    rules:
+    - alert: too-many-accumulated-errors
+      annotations:
+        description: 'accumulated errors'
+        summary: Too many accumulated errors
+      expr: acc_errors_count_total > 4
+      for: 1m
+      labels:
+        severity: warning
+        special_type: street-java
+        alert_type: custom
+EOF
+----
+
+Open this link to see if the alert has been fired or not.
+
+[source,sh,attributes]
+----
+open https://console-openshift-console.apps.${CLUSTER_DOMAIN}/dev-monitoring/ns/${PROJECT_NAME}/alerts
+----
+
+Notifications...
+
+[source,sh,attributes]
+----
+oc apply -f - <<EOF
+---
+kind: Secret
+apiVersion: v1
+metadata:
+  name: slack-webhook-secret
+stringData:
+  slack-webhook-url: https://hooks.slack.com/services/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
+type: Opaque
+---
+apiVersion: monitoring.coreos.com/v1beta1
+kind: AlertmanagerConfig
+metadata:
+  name: fruit-gateway-routing
+  namespace: ${PROJECT_NAME}
+spec:
+  receivers:
+    - name: slack
+      slackConfigs:
+        - apiURL:
+            key: slack-webhook-url
+            name: slack-webhook-secret
+          channel: '#street-java'
+  route:
+    receiver: slack
+    repeatInterval: "1m"
+    routes:
+      - receiver: slack
+EOF
+----
