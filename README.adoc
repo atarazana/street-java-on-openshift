@@ -32,6 +32,8 @@ export PASSWORD=xxxxxxxxx
 export CLUSTER_DOMAIN=cluster-kgbf5.kgbf5.sandbox2412.opentlc.com
 export SERVER=https://api.${CLUSTER_DOMAIN}:6443
 
+export SLACK_WEBHOOK=https://hooks.slack.com/services/xxx
+
 export REPOSITORY="image-registry.openshift-image-registry.svc:5000/${PROJECT_NAME}/fruit-gateway"
 export TAG=1.0.0-SNAPSHOT
 
@@ -506,7 +508,7 @@ apiVersion: v1
 metadata:
   name: slack-webhook-secret
 stringData:
-  slack-webhook-url: https://hooks.slack.com/services/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
+  slack-webhook-url: ${SLACK_WEBHOOK}
 type: Opaque
 ---
 apiVersion: monitoring.coreos.com/v1beta1
