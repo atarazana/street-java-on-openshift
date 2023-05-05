@@ -6,6 +6,10 @@ include::_attributes.adoc[]
 [#preparation]
 == Preparation
 
+Go to link:https://api.slack.com/apps[api.slack.com/apps] and create a new app, call it `Street Java Receiver` for instance and choose a workspace to place it.
+
+Then click on `Incoming Webhooks` activate the option and click on `Add New Webhook to Workspace` then choose a `channel`. Finally copy the `webhook` url and use it in the `.env` file you're about to create.
+
 Create a `.env` in the folder where you have cloned this repository copy the next set of variables and fill the empty ones.
 
 [source,sh,attributes]
@@ -22,6 +26,7 @@ export CLUSTER_DOMAIN=<FILL_ME/>
 export SERVER=https://api.${CLUSTER_DOMAIN}:6443
 
 export SLACK_WEBHOOK=<FILL_ME/>
+export SLACK_CHANNEL=<FILL_ME/>
 
 export REPOSITORY="image-registry.openshift-image-registry.svc:5000/${PROJECT_NAME}/fruit-gateway"
 export TAG=1.0.0-SNAPSHOT
@@ -556,7 +561,7 @@ spec:
         - apiURL:
             key: slack-webhook-url
             name: slack-webhook-secret
-          channel: '#watchdog'
+          channel: '#${SLACK_CHANNEL}'
   route:
     receiver: slack
     repeatInterval: "1m"
