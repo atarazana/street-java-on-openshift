@@ -1,5 +1,9 @@
-= Demo Script
+= Street Java Demo Script
 include::_attributes.adoc[]
+
+This is demo script of:
+
+image::street-java-logo.svg[Street Java Logo,400]
 
 :toc:
 
