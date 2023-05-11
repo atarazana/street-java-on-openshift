@@ -50,7 +50,7 @@ Run this command in *T1*:
 ----
 . .env
 
-oc login -u ${ADMIN_USER} -p ${ADMIN_PASSWORD} --insecure-skip-tls-verify=false --server=${SERVER}
+oc login -u ${ADMIN_USER} -p ${ADMIN_PASSWORD} --insecure-skip-tls-verify=true --server=${SERVER}
 ----
 
 Run this command in *T2* and *T3* before running the demo:
@@ -62,7 +62,7 @@ Run this command in *T2* and *T3* before running the demo:
 
 export KUBECONFIG=~/.kube/config-street-java-user
 
-oc login -u ${USERNAME} -p ${PASSWORD} --server=${SERVER} --insecure-skip-tls-verify=false
+oc login -u ${USERNAME} -p ${PASSWORD} --server=${SERVER} --insecure-skip-tls-verify=true
 
 oc project ${PROJECT_NAME}
 ----
