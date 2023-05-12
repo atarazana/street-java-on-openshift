@@ -10,7 +10,7 @@ image::street-java-logo.svg[Street Java Logo,400]
 [#installation]
 == Install ArgoCD, Pipelines and Quay using the operators
 
-Install ArgoCD Operator, Openshift Pipelines and Quay (simplified non-supported configuration):
+Install ArgoCD Operator, Openshift Pipelines and Quay (simplified non-supported configuration). Log in as cluster-admin and run this command:
 
 ```sh
 until oc apply -k util/bootstrap/; do sleep 2; done
@@ -55,6 +55,7 @@ Run this command in *T1*:
 . .env
 
 oc login -u ${ADMIN_USER} -p ${ADMIN_PASSWORD} --insecure-skip-tls-verify=true --server=${SERVER}
+sudo cp ~/.kube/config /var/root/.kube/config
 ----
 
 Run this command in *T2* and *T3* before running the demo:
@@ -107,17 +108,6 @@ Open the web console and log in with the non-admin user and open the topology vi
 
 We're going to run our gateway locally first, hence localhost.
 
-Go to *T1* and run this command that will port-forward all services in ${PROJECT} and street-java-infra in bulk and change `/etc/hosts`
-
-NOTE: Wait until fruit-service is been deployed.
-
-NOTE: Explain what kubefwd does...
-
-[source,sh,attributes]
-----
-sudo kubefwd svc -n ${PROJECT_NAME} -n street-java-infra
-----
-
 Go to *T3* and:
 
 [source,sh,attributes]
@@ -140,6 +130,17 @@ Now we have evolved and want to use `fruit-service` running in our project and `
 NOTE: We run in the production profile because we have port-forwarded the services and are available locally!
 
 NOTE: Mention that jaeger is installed via operator and supported
+
+Go to *T1* and run this command that will port-forward all services in ${PROJECT} and street-java-infra in bulk and change `/etc/hosts`
+
+NOTE: Wait until fruit-service is been deployed.
+
+NOTE: Explain what kubefwd does...
+
+[source,sh,attributes]
+----
+sudo kubefwd svc -n ${PROJECT_NAME} -n street-java-infra
+----
 
 In *T3*:
 
