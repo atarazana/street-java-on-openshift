@@ -157,7 +157,7 @@ open https://$(oc get route jaeger-all-in-one-inmemory -n street-java-infra -o j
 ----
 
 [#round-3]
-== Round 3 - Punching to the sky
+== Round 3 - Flying Kick to OCP
 
 Type 'q' in *T3* and deploy our app directly from quarkus, using the openshift extension:
 
@@ -227,7 +227,7 @@ mvn package -DskipTests -Dquarkus.kubernetes.deploy=true
 Go to the webconsole and show the results...
 
 [#round-4]
-== Round 4 - Helming
+== Round 4 - Hit'em with the helm!
 
 The idea is to deploy our app with a helm chart...
 
@@ -251,7 +251,7 @@ helm upgrade \
 ----
 
 [#round-5]
-== Round 5 - Fighting near the quay
+== Round 5 - Fighting at the Quay
 
 From *T2*:
 
