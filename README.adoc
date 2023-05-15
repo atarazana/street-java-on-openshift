@@ -364,7 +364,7 @@ helm upgrade \
 ----
 
 [#round-6]
-== Round 6 - It's fine / Setting the red line
+== Round 6 - Setting ground rules
 
 Let's check the status of the whole system through the `config` api exposed by our gateway. Although maybe you already notice errors in jaeger before... Use *T2* to run this command:
 
@@ -419,9 +419,9 @@ curl -s http://localhost:8080/q/metrics | grep -i acc_errors_count
 ----
 
 [#round-7]
-== Round 7 - Monitoring in OpenShift
+== Round 7 - Ground rules also apply to OCP!
 
-You can stop quarkus dev with `q`. Now from *T2*:
+You can stop quarkus dev with `q`. Now from *T2* let's build the new image locally:
 
 [source,sh,attributes]
 ----
@@ -471,7 +471,7 @@ curl -s https://$(oc get route/fruit-gateway -o jsonpath='{.spec.host}')/q/metri
 ----
 
 [#round-8]
-== Round 8 - Up one level
+== Round 8 - Fighting along Prometheus
 
 Now it's time to expose our metrics using a `ServiceMonitor` so that Prometheus for user defined project can scrape them.
 
@@ -509,7 +509,7 @@ open https://console-openshift-console.apps.${CLUSTER_DOMAIN}/dev-monitoring/ns/
 ----
 
 [#round-9]
-== Round 9 - Red Alert
+== Round 9 - Sending out an SOS
 
 We want do trigger an alert if the number of errors in a minute is greater than 4. Let's create a `PrometheusRule` to do so.
 
