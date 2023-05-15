@@ -591,9 +591,10 @@ spec:
               *Status:* {{ .Status | toUpper }}
               *Severity:* {{ .Labels.severity }}
               *SpecialType:* {{ .Labels.special_type }}
-              *Logs*: https://kibana-openshift-logging.apps.${CLUSTER_DOMAIN}/app/kibana#/discover?_g=(time:(from:now-1w,mode:relative,to:now))&_a=(columns:!(kubernetes.container_name,message),interval:auto,query:(language:lucene,query:'kubernetes.namespace_name:%22${PROJECT_NAME}%22%20AND%20kubernetes.container_name.raw:%22fruit-gateway%22%20AND%20message:"ERROR"'),sort:!('@timestamp',desc)) 
               *Time:* {{ .StartsAt }}
               *Alerts*: https://console-openshift-console.apps.${CLUSTER_DOMAIN}/dev-monitoring/ns/${PROJECT_NAME}/alerts
+              *Logs*: https://kibana-openshift-logging.apps.${CLUSTER_DOMAIN}/app/kibana#/discover?_g=(time:(from:now-1w,mode:relative,to:now))&_a=(columns:!(kubernetes.container_name,message),interval:auto,query:(language:lucene,query:'kubernetes.namespace_name:%22${PROJECT_NAME}%22%20AND%20kubernetes.container_name.raw:%22fruit-gateway%22%20AND%20message:"ERROR"'),sort:!('@timestamp',desc)) 
+              *Traces*: https://jaeger-all-in-one-inmemory-street-java-infra.apps.${CLUSTER_DOMAIN}/search?limit=20&lookback=1h&maxDuration&minDuration&service=fruit-gateway
             {{ end }}
   route:
     receiver: slack
