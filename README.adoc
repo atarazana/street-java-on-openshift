@@ -146,7 +146,7 @@ In *T3*:
 
 [source,sh,attributes]
 ----
-mvn quarkus:dev -Dquarkus.profile=prod
+mvn quarkus:dev -Dquarkus.profile=prod -Dquarkus.log.console.json=false
 ----
 
 Open jaeger from *T2*:
@@ -404,7 +404,7 @@ As we did in before, let's test locally our changes from *T3*.
 
 [source,java,attributes]
 ----
-mvn quarkus:dev -Dquarkus.profile=prod
+mvn quarkus:dev -Dquarkus.profile=prod -Dquarkus.log.console.json=false
 ----
 
 Let's be sure that there are some errors...
@@ -534,8 +534,9 @@ spec:
     rules:
     - alert: too-many-accumulated-errors
       annotations:
-        description: 'accumulated errors'
-        summary: Too many accumulated errors
+        description: 'Accumulated errors'
+        summary: |
+          This alert is triggered if there are too many accumulated errors in a predefined period of time.
       expr: acc_errors_count_total > 4
       for: 1m
       labels:
@@ -579,6 +580,21 @@ spec:
             key: slack-webhook-url
             name: slack-webhook-secret
           channel: '#${SLACK_CHANNEL}'
+          username: 'AlertManager'
+          title: 'Street Java Alert "{{ .CommonLabels.alertname }}" 🚀'
+          text: |
+            {{ .CommonAnnotations.summary }}
+
+            {{ range .Alerts }}
+              *Alert:* {{ .Labels.alertname }}
+              *Description:* {{ .Annotations.description }}
+              *Status:* {{ .Status | toUpper }}
+              *Severity:* {{ .Labels.severity }}
+              *SpecialType:* {{ .Labels.special_type }}
+              *Logs*: https://kibana-openshift-logging.apps.${CLUSTER_DOMAIN}/app/kibana#/discover?_g=(time:(from:now-1w,mode:relative,to:now))&_a=(columns:!(kubernetes.container_name,message),interval:auto,query:(language:lucene,query:'kubernetes.namespace_name:%22${PROJECT_NAME}%22%20AND%20kubernetes.container_name.raw:%22fruit-gateway%22%20AND%20message:"ERROR"'),sort:!('@timestamp',desc)) 
+              *Time:* {{ .StartsAt }}
+              *Alerts*: https://console-openshift-console.apps.${CLUSTER_DOMAIN}/dev-monitoring/ns/${PROJECT_NAME}/alerts
+            {{ end }}
   route:
     receiver: slack
     repeatInterval: "1m"
