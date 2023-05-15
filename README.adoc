@@ -253,7 +253,14 @@ helm upgrade \
 [#round-5]
 == Round 5 - Fighting at the Quay
 
-From *T2*:
+Make a change in `fruit-gateway/src/main/webapp/src/App.js` line 61.
+
+[source,html,attributes]
+----
+<Col><h1>Street Java Status!!!</h1></Col>
+----
+
+Then from *T2*:
 
 [source,sh,attributes]
 ----
@@ -331,14 +338,10 @@ Create the secret with the registry credentials of the robot account:
 
 [source,sh,attributes]
 ----
-if [ -z "${CONTAINER_REGISTRY_USERNAME}" ] && [ -z "${CONTAINER_REGISTRY_PASSWORD}" ]; then
-    echo "You should provide a value for CONTAINER_REGISTRY_USERNAME and CONTAINER_REGISTRY_PASSWORD"
-else
 oc create -n ${PROJECT_NAME} secret docker-registry street-java-pull-secret \
   --docker-server=https://${REGISTRY} \
   --docker-username=${CONTAINER_REGISTRY_USERNAME} \
   --docker-password=${CONTAINER_REGISTRY_PASSWORD}
-fi
 ----
 
 New upgrade, this time with the name of the secret to be used!
