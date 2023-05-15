@@ -175,7 +175,7 @@ Run this command to see that the problems is related to LimitRanges...
 oc get events --sort-by='.metadata.creationTimestamp' | grep Failed
 ----
 
-Show the limit:
+Show the limit with this command o in the web console:
 
 [source,sh,attributes]
 ----
@@ -189,7 +189,7 @@ And delete it!
 oc delete limitrange/guide-resource-limits
 ----
 
-Try again...
+Try again... and wait until it fails.
 
 [source,sh,attributes]
 ----
