@@ -7,15 +7,6 @@ image::street-java-logo.svg[Street Java Logo,400]
 
 :toc:
 
-[#installation]
-== Install ArgoCD, Pipelines and Quay using the operators
-
-Install ArgoCD Operator, Openshift Pipelines and Quay (simplified non-supported configuration). Log in as cluster-admin and run this command:
-
-```sh
-until oc apply -k util/bootstrap/; do sleep 2; done
-```
-
 [#preparation]
 == Preparation
 
@@ -58,7 +49,16 @@ oc login -u ${ADMIN_USER} -p ${ADMIN_PASSWORD} --insecure-skip-tls-verify=true -
 sudo cp ~/.kube/config /var/root/.kube/config
 ----
 
-Run this command in *T2* and *T3* before running the demo:
+[#installation]
+== Install ArgoCD, Pipelines and Quay using the operators
+
+Install ArgoCD Operator, Openshift Pipelines and Quay (simplified non-supported configuration). Log in as cluster-admin and run this command from *T1*:
+
+```sh
+until oc apply -k util/bootstrap/; do sleep 2; done
+```
+
+Now, run this command in *T2* and *T3* before running the demo:
 
 [.console-input]
 [source,bash, subs="+attributes"]
@@ -102,6 +102,11 @@ helm install --set fruit-gateway.enabled=false street-java helm/street-java
 ----
 
 Open the web console and log in with the non-admin user and open the topology view.
+
+[source,sh,attributes]
+----
+open https://console-openshift-console.apps.${CLUSTER_DOMAIN}/
+----
 
 [#round-1]
 == Round 1 - Fight in localhost
