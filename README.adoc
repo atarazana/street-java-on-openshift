@@ -122,6 +122,17 @@ Run the quarkus app in dev mode... show the UI, it fails... no problem, it's jus
 mvn quarkus:dev
 ----
 
+NOTE: Optionally run the React UI
+
+In a new terminal in the same folder...
+
+[source,sh,attributes]
+----
+cd src/main/webapp
+npm install
+npm start
+----
+
 [#round-2]
 == Round 2 - Fight in two places at the same time 
 
@@ -133,23 +144,21 @@ NOTE: Mention that jaeger is installed via operator and supported
 
 Go to *T1* and run this command that will port-forward all services in ${PROJECT} and street-java-infra in bulk and change `/etc/hosts`
 
-NOTE: Wait until fruit-service is been deployed.
-
-NOTE: Explain what kubefwd does...
+NOTE: Wait until fruit-service is been deployed and explain what `kubefwd` does...
 
 [source,sh,attributes]
 ----
 sudo kubefwd svc -n ${PROJECT_NAME} -n street-java-infra
 ----
 
-In *T3*:
+In *T3* run the app in `prod` profile:
 
 [source,sh,attributes]
 ----
 mvn quarkus:dev -Dquarkus.profile=prod -Dquarkus.log.console.json=false
 ----
 
-Open jaeger from *T2*:
+NOTE: Open `jaeger` UI from *T2* to show that this service is reachable from `localhost`:
 
 [source,sh,attributes]
 ----
