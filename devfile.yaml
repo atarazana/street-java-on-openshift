@@ -22,7 +22,7 @@ components:
           protocol: tcp
           targetPort: 5005
         - exposure: public
-          name: fruit-gateway-endpoint
+          name: fruit-gateway
           path: /
           protocol: http
           targetPort: 8080
