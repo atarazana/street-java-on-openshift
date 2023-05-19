@@ -7,7 +7,10 @@ image::street-java-logo.svg[Street Java Logo,400]
 
 :toc:
 
-Kick-start an IDE environment here [![Contribute](https://www.eclipse.org/che/contribute.svg)](https://devspaces.apps.cluster-2n8mr.2n8mr.sandbox67.opentlc.com/#https://github.com/atarazana/street-java-on-openshift.git)
+Kick-start an IDE environment here:
+
+image:https://www.eclipse.org/che/contribute.svg[link="https://devspaces.apps.cluster-2n8mr.2n8mr.sandbox67.opentlc.com/#https://github.com/atarazana/street-java-on-openshift.git"]
+
 
 [#preparation]
 == Preparation
