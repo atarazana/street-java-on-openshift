@@ -33,7 +33,7 @@ spec:
           - name: scratch
             path: /home/user/scratch
         memoryLimit: 256Mi
-        image: quay.io/atarazana/web-terminal-tooling:1.0.0
+        image: quay.io/atarazana/web-terminal-tooling:1.0.1
         args:
           - tail
           - '-f'
