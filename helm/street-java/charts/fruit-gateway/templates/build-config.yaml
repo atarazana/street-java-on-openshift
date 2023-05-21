@@ -1,3 +1,4 @@
+---
 kind: BuildConfig
 apiVersion: build.openshift.io/v1
 metadata:
@@ -40,3 +41,11 @@ spec:
       imageChange: {}
     - type: ConfigChange
   runPolicy: Serial
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: {{ include "fruit-gateway.fullname" . }}
+  labels:
+    {{- include "fruit-gateway.labels" . | nindent 4 }}
+spec: {}
