@@ -112,8 +112,8 @@ data:
     metadata:
       name: guide-resource-quota
     spec:
-    hard:
-      count/deployments.apps: '2'
+      hard:
+        count/deployments.apps: '2'
         # limits.cpu: 1200m
         # limits.memory: 800Mi
         # requests.cpu: 500m
@@ -170,7 +170,7 @@ spec:
             echo ">>> Creating limitrange with /setup-files/limit-range.yaml"
             oc create -n ${PROJECT_NAME} -f /setup-files/limit-range.yaml
             # echo ">>> Creating quota with /setup-files/resource-quota.yaml"
-            # oc create -n ${PROJECT_NAME} -f /setup-files/resource-quota.yaml
+            oc create -n ${PROJECT_NAME} -f /setup-files/resource-quota.yaml
             oc adm policy add-role-to-user view ${USERNAME} -n street-java-infra
             oc adm policy add-role-to-user view ${USERNAME} -n quay-system
           done
