@@ -451,12 +451,19 @@ You can stop quarkus dev with `q`. Now from *T2* let's build the new image local
 // podman push --tls-verify=false ${REGISTRY}/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH}
 // ----
 
-let's create a new `BuildConfig` this time is a binary build, and start start it, from *T3*:
+let's create a new `BuildConfig` this time is a binary build, from *T3*:
 
 [source,sh,attributes]
 ----
 oc new-build --image-stream=openshift/ubi8-openjdk-17:1.12 --name fruit-gateway-bin --env-file=.s2i/environment --to=fruit-gateway --binary=true
-oc start-build fruit-gateway-bin --from-dir=target --follow=true --wait
+----
+
+Then start the binary build using `target/quarkus-app` as a binary asset, from *T3*:
+
+[source,sh,attributes]
+----
+mvn package -DskipTests
+oc start-build fruit-gateway-bin --from-dir=target/quarkus-app --follow=true --wait
 ----
 
 Copy the new image to the enterprise registry as before. Run this command from *T2*:
@@ -537,7 +544,7 @@ Give it 30 sec., then use this link to see our count of errors.
 
 [source,sh,attributes]
 ----
-open https://console-openshift-console.apps.${CLUSTER_DOMAIN}/dev-monitoring/ns/${PROJECT_NAME}/metrics
+echo "Open Metrics: https://console-openshift-console.apps.${CLUSTER_DOMAIN}/dev-monitoring/ns/${PROJECT_NAME}/metrics"
 ----
 
 [#round-9]
@@ -579,7 +586,7 @@ Open this link to see if the alert has been fired or not.
 
 [source,sh,attributes]
 ----
-open https://console-openshift-console.apps.${CLUSTER_DOMAIN}/dev-monitoring/ns/${PROJECT_NAME}/alerts
+echo "Open Alerts: https://console-openshift-console.apps.${CLUSTER_DOMAIN}/dev-monitoring/ns/${PROJECT_NAME}/alerts"
 ----
 
 Notifications...
