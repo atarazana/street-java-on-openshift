@@ -47,7 +47,7 @@ components:
           value: $HOME/auth.json
       # image: registry.redhat.io/devspaces/udi-rhel8@sha256:bc9d5980a78f0c8b9eb5a20368514ced3dc6e5d99d286cb2e67266b1eb522b94
       image: quay.io/atarazana/street-java-udi-rhel8:1.0.0
-      memoryLimit: 6G
+      memoryLimit: 4G
       mountSources: true
       sourceMapping: /projects
       volumeMounts:
