@@ -41,9 +41,9 @@ export REPOSITORY="image-registry.openshift-image-registry.svc:5000/${PROJECT_NA
 export TAG=1.0.0-SNAPSHOT
 ----
 
-Open two terminal windows, referred to as *T2* and *T3* and change to the folder where this repository has been cloned.
+Open two terminal windows, referred to as *T1* and *T2* and change to the folder where this repository has been cloned.
 
-Now, run this command in *T2* and *T3* before running the demo:
+Now, run this command in *T1* and *T2* before running the demo:
 
 [.console-input]
 [source,bash, subs="+attributes"]
@@ -53,12 +53,28 @@ Now, run this command in *T2* and *T3* before running the demo:
 oc project ${PROJECT_NAME}
 ----
 
+[#checking-in]
+== Checking in 
+
+You've been assigned the task of developing a gateway and UI for a backend that's already been developed and is deployed as a Helm chart. Eventually you will also deploy your application as part of the same chart, as a dependency.
+
+Go to *T1* and deploy the chart.
+
+NOTE: The chart already contains fruit-gateway but we're going to fake it's not developed yet by disabling it.
+
+[source,sh,attributes]
+----
+helm install --set fruit-gateway.enabled=false street-java helm/street-java
+----
+
+Open the web console and log in with the non-admin user and open the topology view.
+
 [#round-1]
 == Round 1 - Fight in localhost
 
 We're going to run our gateway locally first, hence localhost.
 
-Go to *T3* and:
+Go to *T2* and:
 
 [source,sh,attributes]
 ----
@@ -92,7 +108,7 @@ NOTE: We run in the production profile because we have port-forwarded the servic
 
 NOTE: Mention that jaeger is installed via operator and supported
 
-In *T3* run the app in `prod` profile:
+In *T2* run the app in `prod` profile:
 
 [source,sh,attributes]
 ----
@@ -100,7 +116,7 @@ FRUIT_SERVICE_URL=http://fruit-service.${PROJECT_NAME}:8080 \
   mvn quarkus:dev -Dquarkus.profile=prod -Dquarkus.log.console.json=false
 ----
 
-NOTE: Open `jaeger` UI from *T2* to show that this service is reachable from `localhost`:
+NOTE: Open `jaeger` UI from *T1* to show that this service is reachable from `localhost`:
 
 [source,sh,attributes]
 ----
@@ -110,7 +126,7 @@ echo "Open this: https://$(oc get route jaeger-all-in-one-inmemory -n street-jav
 [#round-3]
 == Round 3 - Flying Kick to OCP
 
-Type 'q' in *T3* and deploy our app directly from quarkus, using the openshift extension:
+Type 'q' in *T2* and deploy our app directly from quarkus, using the openshift extension:
 
 NOTE: Don't wait wait too much, and look at BuildConfig and Build.
 
@@ -182,14 +198,14 @@ Go to the webconsole and show the results...
 
 The idea is to deploy our app with a helm chart...
 
-Before delete all the resources created... from *T3*.
+Before delete all the resources created... from *T2*.
 
 [source,sh,attributes]
 ----
 oc delete -f ./target/kubernetes/openshift.yml
 ----
 
-And upgrade the helm chart setting image repository and tag to the ones we had been using before from *T2*.
+And upgrade the helm chart setting image repository and tag to the ones we had been using before from *T1*.
 
 [source,sh,attributes]
 ----
@@ -224,7 +240,7 @@ export REGISTRY=$(oc get route myregistry-quay -n quay-system -o jsonpath='{.spe
 
 === Option 1
 
-Then from *T2*:
+Then from *T1*:
 
 [source,sh,attributes]
 ----
@@ -246,7 +262,7 @@ podman tag localhost/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH} ${REGISTRY}/${USER
 podman push --tls-verify=false ${REGISTRY}/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH}
 ----
 
-Open quay from *T2* and check the image is there:
+Open quay from *T1* and check the image is there:
 
 [source,sh,attributes]
 ----
@@ -255,7 +271,7 @@ echo "Open: https://$(oc get route myregistry-quay -n quay-system -o jsonpath='{
 
 === Option 2
 
-From *T3*:
+From *T2*:
 
 [source,sh,attributes]
 ----
@@ -285,7 +301,7 @@ skopeo copy --src-tls-verify=false \
   docker://${REGISTRY}/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH}
 ----
 
-Open quay from *T2* and check the image is there:
+Open quay from *T1* and check the image is there:
 
 [source,sh,attributes]
 ----
@@ -320,7 +336,7 @@ Run this command to see that the problems is related to permissions in the enter
 oc get events --sort-by='.metadata.creationTimestamp' | grep Failed
 ----
 
-Open quay from *T2* and create a robot account called `cicd`, give it `Read` permission on the `street-java-fruit-gateway` repository:
+Open quay from *T1* and create a robot account called `cicd`, give it `Read` permission on the `street-java-fruit-gateway` repository:
 
 [source,sh,attributes]
 ----
@@ -370,7 +386,7 @@ helm upgrade \
 [#round-6]
 == Round 6 - Setting ground rules
 
-Let's check the status of the whole system through the `config` api exposed by our gateway. Although maybe you already notice errors in jaeger before... Use *T2* to run this command:
+Let's check the status of the whole system through the `config` api exposed by our gateway. Although maybe you already notice errors in jaeger before... Use *T1* to run this command:
 
 [source,attributes]
 ----
@@ -379,7 +395,7 @@ for i in {1..20}; do curl -s https://$(oc get route/fruit-gateway -o jsonpath='{
 
 This type or errors are not easy to detect, hence defining a behavior baseline will help us detecting abnormal situations. So measuring is key and Prometheus can help us with this.
 
-Let's add an extension to help us generating Prometheus metrics. Run this in *T3*.
+Let's add an extension to help us generating Prometheus metrics. Run this in *T2*.
 
 [source,sh,attributes]
 ----
@@ -411,7 +427,7 @@ Then count error every time we set status as `DEGRADED`.
 registry.counter(ACC_ERRORS_COUNT_NAME).increment();
 ----
 
-As we did in before, let's test locally our changes from *T3*.
+As we did in before, let's test locally our changes from *T2*.
 
 [source,java,attributes]
 ----
@@ -436,7 +452,7 @@ curl -s http://localhost:8080/q/metrics | grep -i acc_errors_count
 [#round-7]
 == Round 7 - Ground rules also apply to OCP!
 
-You can stop quarkus dev with `q`. Now from *T2* let's build the new image locally:
+You can stop quarkus dev with `q`. Now from *T1* let's build the new image locally:
 
 // [source,sh,attributes]
 // ----
@@ -451,14 +467,14 @@ You can stop quarkus dev with `q`. Now from *T2* let's build the new image local
 // podman push --tls-verify=false ${REGISTRY}/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH}
 // ----
 
-let's create a new `BuildConfig` this time is a binary build, from *T3*:
+let's create a new `BuildConfig` this time is a binary build, from *T2*:
 
 [source,sh,attributes]
 ----
 oc new-build --image-stream=openshift/ubi8-openjdk-17:1.12 --name fruit-gateway-bin --env-file=.s2i/environment --to=fruit-gateway --binary=true
 ----
 
-Then start the binary build using `target/quarkus-app` as a binary asset, from *T3*:
+Then start the binary build using `target/quarkus-app` as a binary asset, from *T2*:
 
 [source,sh,attributes]
 ----
@@ -466,7 +482,7 @@ mvn package -DskipTests
 oc start-build fruit-gateway-bin --from-dir=target/quarkus-app --follow=true --wait
 ----
 
-Copy the new image to the enterprise registry as before. Run this command from *T2*:
+Copy the new image to the enterprise registry as before. Run this command from *T1*:
 
 [source,sh,attributes]
 ----
@@ -514,7 +530,7 @@ curl -s https://$(oc get route/fruit-gateway -o jsonpath='{.spec.host}')/q/metri
 
 Now it's time to expose our metrics using a `ServiceMonitor` so that Prometheus for user defined project can scrape them.
 
-From *T2*:
+From *T1*:
 
 [source,sh,attributes]
 ----
@@ -552,7 +568,7 @@ echo "Open Metrics: https://console-openshift-console.apps.${CLUSTER_DOMAIN}/dev
 
 We want do trigger an alert if the number of errors in a minute is greater than 4. Let's create a `PrometheusRule` to do so.
 
-From *T2*:
+From *T1*:
 
 [source,sh,attributes]
 ----
