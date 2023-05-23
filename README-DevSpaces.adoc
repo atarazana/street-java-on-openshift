@@ -227,7 +227,7 @@ Make a change in `fruit-gateway/src/main/webapp/src/App.js` line 61.
 <Col><h1>Street Java Status!!!</h1></Col>
 ----
 
-Prepare environment for registry, image and tag:
+Prepare environment for registry, image and tag, from *T1*:
 
 [source,sh,attributes]
 ----
@@ -301,7 +301,10 @@ skopeo copy --src-tls-verify=false \
   docker://${REGISTRY}/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH}
 ----
 
-Open quay from *T1* and check the image is there:
+Open quay from *T1* and check the image is there. Log in with these credentials:
+
+- USERNAME: ${USERNAME}
+- PASSWORD: openshift
 
 [source,sh,attributes]
 ----
