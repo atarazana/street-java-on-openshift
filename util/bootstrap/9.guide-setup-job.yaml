@@ -106,7 +106,7 @@ data:
           max:
             cpu: '750m'
             memory: 600Mi
-  resource-quota: |
+  resource-quota.yaml: |
     kind: ResourceQuota
     apiVersion: v1
     metadata:
@@ -139,7 +139,8 @@ spec:
             drop:
               - ALL
           allowPrivilegeEscalation: false
-        image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
+        # image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
+        image: quay.io/atarazana/jq:0.0.3
         env:
         - name: COUNT
           value: "30"
@@ -154,10 +155,14 @@ spec:
         - '-c'
         args:
         - |-
+          cd /tmp
+          
           echo "------------------------------"
           echo " Setting Up Guide Resources"
           for i in $(seq 1 $COUNT); 
           do
+            # git clone https://github.com/atarazana/street-java-on-openshift
+            # cd street-java-on-openshift
             USERNAME=user${i}
             PROJECT_NAME=${PROJECT_BASE_NAME}-${USERNAME}
             echo ">>> Creating project ${PROJECT_NAME}"
@@ -169,10 +174,12 @@ spec:
             oc delete limitrange/${PROJECT_NAME}-core-resource-limits -n ${PROJECT_NAME}
             echo ">>> Creating limitrange with /setup-files/limit-range.yaml"
             oc create -n ${PROJECT_NAME} -f /setup-files/limit-range.yaml
-            # echo ">>> Creating quota with /setup-files/resource-quota.yaml"
+            echo ">>> Creating quota with /setup-files/resource-quota.yaml"
             oc create -n ${PROJECT_NAME} -f /setup-files/resource-quota.yaml
             oc adm policy add-role-to-user view ${USERNAME} -n street-java-infra
             oc adm policy add-role-to-user view ${USERNAME} -n quay-system
+            # helm install --set fruit-gateway.enabled=false street-java helm/street-java
+            # cd .. && rm -rf street-java-on-openshift
           done
           echo "------------------------------"
         imagePullPolicy: Always
