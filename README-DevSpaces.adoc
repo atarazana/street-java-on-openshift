@@ -271,7 +271,7 @@ echo "Open: https://$(oc get route myregistry-quay -n quay-system -o jsonpath='{
 
 === Option 2
 
-From *T2*:
+From *T1*:
 
 [source,sh,attributes]
 ----
