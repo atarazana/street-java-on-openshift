@@ -1,4 +1,6 @@
 
 #!/bin/sh
 
-podman push $REGISTRY/$REGISTRY_USER_ID/$IMAGE_NAME:$IMAGE_VERSION
+. ./image-env.sh
+
+podman push ${REGISTRY}/${REGISTRY_USER_ID}/${IMAGE_NAME}:${IMAGE_VERSION}

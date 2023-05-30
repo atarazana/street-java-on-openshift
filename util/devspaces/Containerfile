@@ -15,6 +15,8 @@ RUN \
 RUN rm ${HOME}/.java/current/* && ln -s /usr/lib/jvm/java-17-openjdk/* ${HOME}/.java/current
 RUN dnf install -y maven-openjdk17 --allowerasing
 
+RUN curl -o /tmp/argocd -L https://github.com/argoproj/argo-cd/releases/download/v${ARGOCD_VERSION}/argocd-linux-amd64 && mv /tmp/argocd /usr/bin && chmod a+x /usr/bin/argocd && rm -f /tmp/argocd
+
 ENTRYPOINT [ "/entrypoint.sh" ]
 WORKDIR /projects
 CMD tail -f /dev/null
