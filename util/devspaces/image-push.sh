@@ -1,4 +1,4 @@
 
 #!/bin/sh
 
-podman push quay.io/atarazana/street-java-udi-rhel8:1.0.0
+podman push $REGISTRY/$REGISTRY_USER_ID/$IMAGE_NAME:$IMAGE_VERSION

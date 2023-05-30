@@ -1,6 +1,8 @@
 
 #!/bin/sh
 
-podman build -f Containerfile -t street-java-udi-rhel8:local .
+. ./image-env.sh
 
-podman tag street-java-udi-rhel8:local quay.io/atarazana/street-java-udi-rhel8:1.0.0
+podman build -f Containerfile -t ${IMAGE_NAME}:local --build-arg FROM_IMAGE="${FROM_IMAGE}" .
+
+podman tag ${IMAGE_NAME}:local quay.io/atarazana/${IMAGE_NAME}:1.0.0
