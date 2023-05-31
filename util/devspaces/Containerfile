@@ -18,6 +18,9 @@ RUN dnf install -y maven-openjdk17 --allowerasing
 ENV ARGOCD_VERSION=2.5.3
 RUN curl -o /tmp/argocd -L https://github.com/argoproj/argo-cd/releases/download/v${ARGOCD_VERSION}/argocd-linux-amd64 && mv /tmp/argocd /usr/bin && chmod a+x /usr/bin/argocd && rm -f /tmp/argocd
 
+ENV YQ_VERSION=4.11.2
+RUN curl -o /tmp/yq -L https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64 && cd /usr/bin && cp /tmp/yq . && chmod a+x /usr/bin/yq && rm -f /tmp/yq
+
 ENTRYPOINT [ "/entrypoint.sh" ]
 WORKDIR /projects
 CMD tail -f /dev/null
