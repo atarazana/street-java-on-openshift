@@ -40,7 +40,7 @@ public class RequestHeaderFactory implements ClientHeadersFactory {
 
         result.add("x-owner", "carlos");
 
-        log.info(result);
+        log.debug(result);
         return result;
     }
 }
