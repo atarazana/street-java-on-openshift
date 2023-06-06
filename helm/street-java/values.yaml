@@ -20,7 +20,7 @@ fruit-service:
   appName: fruit-service
   image:
     repository: quay.io/atarazana/street-java-fruit-service@sha256
-    tag: "6e2b2ff3e855be2fd60d1313fc04ace27d62d4fc55f2388a965a1d22baa07ed8"
+    tag: "3cd448e924414202b7e6c5c6d922fb7042a885b514bb238a5ac5867c84861c17"
   imagePullSecrets: []
   env:
   - name: JAVA_OPTS

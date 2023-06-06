@@ -274,6 +274,13 @@ helm upgrade \
  street-java helm/street-java
 ----
 
+Wait for the image to be built!
+
+[source,sh,attributes]
+----
+oc logs -f bc/fruit-gateway -n ${PROJECT_NAME}
+----
+
 [#round-5]
 == Round 5 - Fighting at the Quay
 
