@@ -36,6 +36,10 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           env:
             {{- toYaml .Values.env | nindent 12 }}
+            {{ if .Values.appName }}
+            - name: FRUIT_GATEWAY_APP_NAME
+              value: {{ .Values.appName }}
+            {{ end }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:

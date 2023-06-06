@@ -55,6 +55,10 @@ spec:
               value: fruit-service-db
             - name: DB_PORT
               value: "5432"
+            {{ if .Values.appName }}
+            - name: FRUIT_SERVICE_APP_NAME
+              value: {{ .Values.appName }}
+            {{ end }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:

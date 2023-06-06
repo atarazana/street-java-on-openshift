@@ -28,6 +28,9 @@ export PASSWORD=<FILL_ME/>
 
 export PROJECT_NAME=street-java-${USERNAME}
 
+export FRUIT_SERVICE_APP_NAME=fruit-service-${USERNAME}
+export FRUIT_GATEWAY_APP_NAME=fruit-gateway-${USERNAME}
+
 export ADMIN_USER=<FILL_ME/>
 export ADMIN_PASSWORD=<FILL_ME/>
 
@@ -77,20 +80,20 @@ oc login -u ${USERNAME} -p ${PASSWORD} --server=${SERVER} --insecure-skip-tls-ve
 oc project ${PROJECT_NAME}
 ----
 
-Run this command in *T2* to create a resource quota limiting the number of `Deployments` this way you will show one of the typical problems a developer has to face in a kubernetes cluster.
+// Run this command in *T2* to create a resource quota limiting the number of `Deployments` this way you will show one of the typical problems a developer has to face in a kubernetes cluster.
 
-[source,sh,attributes]
-----
-oc apply -n ${PROJECT_NAME} -f - <<EOF
-kind: ResourceQuota
-apiVersion: v1
-metadata:
-    name: guide-resource-quota
-spec:
-  hard:
-    count/deployments.apps: '2'
-EOF
-----
+// [source,sh,attributes]
+// ----
+// oc apply -n ${PROJECT_NAME} -f - <<EOF
+// kind: ResourceQuota
+// apiVersion: v1
+// metadata:
+//     name: guide-resource-quota
+// spec:
+//   hard:
+//     count/deployments.apps: '2'
+// EOF
+// ----
 
 [#checking-in]
 == Checking in 
@@ -103,7 +106,7 @@ NOTE: The chart already contains fruit-gateway but we're going to fake it's not 
 
 [source,sh,attributes]
 ----
-helm install --set fruit-gateway.enabled=false street-java helm/street-java
+helm install --set fruit-gateway.enabled=false --set fruit-service.appName=${FRUIT_SERVICE_APP_NAME} street-java helm/street-java
 ----
 
 Open the web console and log in with the non-admin user and open the topology view.
@@ -264,6 +267,8 @@ And upgrade the helm chart setting image repository and tag to the ones we had b
 echo "REPOSITORY=${REPOSITORY}"
 echo "TAG=${TAG}"
 helm upgrade \
+  --set fruit-service.appName=${FRUIT_SERVICE_APP_NAME} \
+  --set fruit-gateway.appName=${FRUIT_GATEWAY_APP_NAME} \
   --set fruit-gateway.image.repository=${REPOSITORY} \
   --set fruit-gateway.image.tag=${TAG} \
  street-java helm/street-java
@@ -326,6 +331,8 @@ Let's upgrade, *this time to use the image in the enterprise registry*:
 [source,sh,attributes]
 ----
 helm upgrade \
+  --set fruit-service.appName=${FRUIT_SERVICE_APP_NAME} \
+  --set fruit-gateway.appName=${FRUIT_GATEWAY_APP_NAME} \
   --set fruit-gateway.image.repository=${REGISTRY}/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}@sha256 \
   --set fruit-gateway.image.tag=${IMAGE_DIGEST} \
  street-java helm/street-java
@@ -379,6 +386,8 @@ fruit-gateway.imagePullSecrets[0].name=street-java-pull-secret
 [source,sh,attributes]
 ----
 helm upgrade \
+  --set fruit-service.appName=${FRUIT_SERVICE_APP_NAME} \
+  --set fruit-gateway.appName=${FRUIT_GATEWAY_APP_NAME} \
   --set fruit-gateway.image.repository=${REGISTRY}/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}@sha256 \
   --set fruit-gateway.image.tag=${IMAGE_DIGEST} \
   --set fruit-gateway.imagePullSecrets[0].name=street-java-pull-secret \
@@ -472,6 +481,8 @@ Let's upgrade, this time the image should expose metrics:
 [source,sh,attributes]
 ----
 helm upgrade \
+  --set fruit-service.appName=${FRUIT_SERVICE_APP_NAME} \
+  --set fruit-gateway.appName=${FRUIT_GATEWAY_APP_NAME} \
   --set fruit-gateway.image.repository=${REGISTRY}/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}@sha256 \
   --set fruit-gateway.image.tag=${IMAGE_DIGEST} \
   --set fruit-gateway.imagePullSecrets[0].name=street-java-pull-secret \
