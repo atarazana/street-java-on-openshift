@@ -21,6 +21,12 @@ spec:
         kind: ImageStreamTag
         namespace: openshift
         name: 'java:openjdk-17-ubi8'
+      env:
+        {{ if .Values.appName }}
+        - name: FRUIT_GATEWAY_APP_NAME
+          value: {{ .Values.appName }}
+        {{ end }}
+      incremental: true
   postCommit: {}
   source:
     type: Git
