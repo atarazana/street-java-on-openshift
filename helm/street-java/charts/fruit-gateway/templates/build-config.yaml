@@ -10,7 +10,8 @@ spec:
   output:
     to:
       kind: ImageStreamTag
-      name: {{ include "fruit-gateway.fullname" . }}:{{ .Values.image.tag }}
+      # name: {{ include "fruit-gateway.fullname" . }}:{{ .Values.image.tag }}
+      name: {{ include "fruit-gateway.fullname" . }}:{{ .Chart.AppVersion }}
   resources: {}
   successfulBuildsHistoryLimit: 5
   failedBuildsHistoryLimit: 5
