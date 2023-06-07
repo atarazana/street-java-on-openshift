@@ -9,7 +9,7 @@ image::street-java-logo.svg[Street Java Logo,400]
 
 Kick-start an IDE environment here:
 
-image:https://www.eclipse.org/che/contribute.svg[link="https://devspaces.apps.cluster-2n8mr.2n8mr.sandbox67.opentlc.com/#https://github.com/atarazana/street-java-on-openshift.git"]
+image:https://www.eclipse.org/che/contribute.svg[link="https://devspaces.apps.cluster.example.com/#https://github.com/atarazana/street-java-on-openshift.git"]
 
 
 [#preparation]
@@ -23,13 +23,13 @@ Create a `.env` in the folder where you have cloned this repository copy the nex
 
 [source,sh,attributes]
 ----
-export USERNAME=<FILL_ME/>
-export PASSWORD=<FILL_ME/>
+export DEV_USERNAME=<FILL_ME/>
+export DEV_PASSWORD=<FILL_ME/>
 
-export PROJECT_NAME=street-java-${USERNAME}
+export PROJECT_NAME=street-java-${DEV_USERNAME}
 
-export FRUIT_SERVICE_APP_NAME=fruit-service-${USERNAME}
-export FRUIT_GATEWAY_APP_NAME=fruit-gateway-${USERNAME}
+export FRUIT_SERVICE_APP_NAME=fruit-service-${DEV_USERNAME}
+export FRUIT_GATEWAY_APP_NAME=fruit-gateway-${DEV_USERNAME}
 
 export ADMIN_USER=<FILL_ME/>
 export ADMIN_PASSWORD=<FILL_ME/>
@@ -75,7 +75,7 @@ Now, run this command in *T2* and *T3* before running the demo:
 
 export KUBECONFIG=~/.kube/config-street-java-user
 
-oc login -u ${USERNAME} -p ${PASSWORD} --server=${SERVER} --insecure-skip-tls-verify=true
+oc login -u ${DEV_USERNAME} -p ${DEV_PASSWORD} --server=${SERVER} --insecure-skip-tls-verify=true
 
 oc project ${PROJECT_NAME}
 ----
@@ -303,7 +303,7 @@ Login in the enterprise Quay registry.
 [source,sh,attributes]
 ----
 export REGISTRY=$(oc get route myregistry-quay -n quay-system -o jsonpath='{.spec.host}')
-podman login -u ${USERNAME} -p openshift --tls-verify=false ${REGISTRY}
+podman login -u ${DEV_USERNAME} -p openshift --tls-verify=false ${REGISTRY}
 ----
 
 Prepare image name and tag:
@@ -320,15 +320,15 @@ Push the image:
 
 [source,sh,attributes]
 ----
-podman tag localhost/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH} ${REGISTRY}/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH}
-podman push --tls-verify=false ${REGISTRY}/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH}
+podman tag localhost/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH} ${REGISTRY}/${DEV_USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH}
+podman push --tls-verify=false ${REGISTRY}/${DEV_USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH}
 ----
 
 Get the image digest:
 
 [source,sh,attributes]
 ----
-export IMAGE_DIGEST_RAW=$(skopeo inspect --tls-verify=false docker://${REGISTRY}/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH} | jq -r .Digest)
+export IMAGE_DIGEST_RAW=$(skopeo inspect --tls-verify=false docker://${REGISTRY}/${DEV_USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH} | jq -r .Digest)
 export IMAGE_DIGEST=${IMAGE_DIGEST_RAW:7}
 echo "IMAGE_DIGEST = ${IMAGE_DIGEST}"
 ----
@@ -340,7 +340,7 @@ Let's upgrade, *this time to use the image in the enterprise registry*:
 helm upgrade \
   --set fruit-service.appName=${FRUIT_SERVICE_APP_NAME} \
   --set fruit-gateway.appName=${FRUIT_GATEWAY_APP_NAME} \
-  --set fruit-gateway.image.repository=${REGISTRY}/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}@sha256 \
+  --set fruit-gateway.image.repository=${REGISTRY}/${DEV_USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}@sha256 \
   --set fruit-gateway.image.tag=${IMAGE_DIGEST} \
  street-java helm/street-java
 ----
@@ -395,7 +395,7 @@ fruit-gateway.imagePullSecrets[0].name=street-java-pull-secret
 helm upgrade \
   --set fruit-service.appName=${FRUIT_SERVICE_APP_NAME} \
   --set fruit-gateway.appName=${FRUIT_GATEWAY_APP_NAME} \
-  --set fruit-gateway.image.repository=${REGISTRY}/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}@sha256 \
+  --set fruit-gateway.image.repository=${REGISTRY}/${DEV_USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}@sha256 \
   --set fruit-gateway.image.tag=${IMAGE_DIGEST} \
   --set fruit-gateway.imagePullSecrets[0].name=street-java-pull-secret \
  street-java helm/street-java
@@ -470,15 +470,15 @@ Push the image:
 
 [source,sh,attributes]
 ----
-podman tag localhost/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH} ${REGISTRY}/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH}
-podman push --tls-verify=false ${REGISTRY}/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH}
+podman tag localhost/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH} ${REGISTRY}/${DEV_USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH}
+podman push --tls-verify=false ${REGISTRY}/${DEV_USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH}
 ----
 
 Get the image digest:
 
 [source,sh,attributes]
 ----
-export IMAGE_DIGEST_RAW=$(skopeo inspect --tls-verify=false docker://${REGISTRY}/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH} | jq -r .Digest)
+export IMAGE_DIGEST_RAW=$(skopeo inspect --tls-verify=false docker://${REGISTRY}/${DEV_USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH} | jq -r .Digest)
 export IMAGE_DIGEST=${IMAGE_DIGEST_RAW:7}
 echo "IMAGE_DIGEST_MONITORING = ${IMAGE_DIGEST}"
 ----
@@ -490,7 +490,7 @@ Let's upgrade, this time the image should expose metrics:
 helm upgrade \
   --set fruit-service.appName=${FRUIT_SERVICE_APP_NAME} \
   --set fruit-gateway.appName=${FRUIT_GATEWAY_APP_NAME} \
-  --set fruit-gateway.image.repository=${REGISTRY}/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}@sha256 \
+  --set fruit-gateway.image.repository=${REGISTRY}/${DEV_USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}@sha256 \
   --set fruit-gateway.image.tag=${IMAGE_DIGEST} \
   --set fruit-gateway.imagePullSecrets[0].name=street-java-pull-secret \
  street-java helm/street-java
@@ -617,7 +617,7 @@ spec:
             key: slack-webhook-url
             name: slack-webhook-secret
           channel: '#${SLACK_CHANNEL}'
-          username: 'AlertManager'
+          DEV_USERNAME: 'AlertManager'
           title: 'Street Java Alert "{{ .CommonLabels.alertname }}" 🚀'
           text: |
             {{ .CommonAnnotations.summary }}

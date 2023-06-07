@@ -9,7 +9,7 @@ image::street-java-logo.svg[Street Java Logo,400]
 
 Kick-start an IDE environment here:
 
-image:https://www.eclipse.org/che/contribute.svg[link="https://devspaces.apps.cluster-2n8mr.2n8mr.sandbox67.opentlc.com/#https://github.com/atarazana/street-java-on-openshift.git"]
+image:https://www.eclipse.org/che/contribute.svg[link="https://devspaces.apps.cluster.example.com/#https://github.com/atarazana/street-java-on-openshift.git"]
 
 
 [#preparation]
@@ -23,13 +23,13 @@ Create a `.env` in the folder where you have cloned this repository copy the nex
 
 [source,sh,attributes]
 ----
-export USERNAME=$(oc whoami)
-export PASSWORD=<FILL_ME/>
+export DEV_USERNAME=$(oc whoami)
+export DEV_PASSWORD=<FILL_ME/>
 
-export PROJECT_NAME=street-java-${USERNAME}
+export PROJECT_NAME=street-java-${DEV_USERNAME}
 
-export FRUIT_SERVICE_APP_NAME=fruit-service-${USERNAME}
-export FRUIT_GATEWAY_APP_NAME=fruit-gateway-${USERNAME}
+export FRUIT_SERVICE_APP_NAME=fruit-service-${DEV_USERNAME}
+export FRUIT_GATEWAY_APP_NAME=fruit-gateway-${DEV_USERNAME}
 
 export ADMIN_USER=<FILL_ME/>
 export ADMIN_PASSWORD=<FILL_ME/>
@@ -256,22 +256,22 @@ Login in the enterprise Quay registry.
 
 [source,sh,attributes]
 ----
-podman login -u ${USERNAME} -p openshift --tls-verify=false ${REGISTRY}
+podman login -u ${DEV_USERNAME} -p openshift --tls-verify=false ${REGISTRY}
 ----
 
 Push the image:
 
 [source,sh,attributes]
 ----
-podman tag localhost/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH} ${REGISTRY}/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH}
-podman push --tls-verify=false ${REGISTRY}/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH}
+podman tag localhost/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH} ${REGISTRY}/${DEV_USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH}
+podman push --tls-verify=false ${REGISTRY}/${DEV_USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH}
 ----
 
 Open quay from *T1* and check the image is there:
 
 [source,sh,attributes]
 ----
-echo "Open: https://$(oc get route myregistry-quay -n quay-system -o jsonpath='{.spec.host}')/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH}"
+echo "Open: https://$(oc get route myregistry-quay -n quay-system -o jsonpath='{.spec.host}')/${DEV_USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH}"
 ----
 
 === Option 2
@@ -303,17 +303,17 @@ Copy image to enterprise registry:
 ----
 skopeo copy --src-tls-verify=false \
   docker://image-registry.openshift-image-registry:5000/${PROJECT_NAME}/fruit-gateway:latest \
-  docker://${REGISTRY}/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH}
+  docker://${REGISTRY}/${DEV_USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH}
 ----
 
 Open quay from *T1* and check the image is there. Log in with these credentials:
 
-- USERNAME: ${USERNAME}
+- USERNAME: ${DEV_USERNAME}
 - PASSWORD: openshift
 
 [source,sh,attributes]
 ----
-echo "Open: https://$(oc get route myregistry-quay -n quay-system -o jsonpath='{.spec.host}')/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH}"
+echo "Open: https://$(oc get route myregistry-quay -n quay-system -o jsonpath='{.spec.host}')/${DEV_USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH}"
 ----
 
 === Resume after pushing the new image
@@ -322,7 +322,7 @@ Get the image digest:
 
 [source,sh,attributes]
 ----
-export IMAGE_DIGEST_RAW=$(skopeo inspect --tls-verify=false docker://${REGISTRY}/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH} | jq -r .Digest)
+export IMAGE_DIGEST_RAW=$(skopeo inspect --tls-verify=false docker://${REGISTRY}/${DEV_USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH} | jq -r .Digest)
 export IMAGE_DIGEST=${IMAGE_DIGEST_RAW:7}
 echo "IMAGE_DIGEST = ${IMAGE_DIGEST}"
 ----
@@ -334,7 +334,7 @@ Let's upgrade, *this time to use the image in the enterprise registry*:
 helm upgrade \
   --set fruit-service.appName=${FRUIT_SERVICE_APP_NAME} \
   --set fruit-gateway.appName=${FRUIT_GATEWAY_APP_NAME} \
-  --set fruit-gateway.image.repository=${REGISTRY}/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}@sha256 \
+  --set fruit-gateway.image.repository=${REGISTRY}/${DEV_USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}@sha256 \
   --set fruit-gateway.image.tag=${IMAGE_DIGEST} \
  street-java helm/street-java
 ----
@@ -357,7 +357,7 @@ Paste the password of the robot account:
 
 [source,sh,attributes]
 ----
-export CONTAINER_REGISTRY_USERNAME="${USERNAME}+cicd"
+export CONTAINER_REGISTRY_USERNAME="${DEV_USERNAME}+cicd"
 echo "CONTAINER_REGISTRY_PASSWORD: " && read -s CONTAINER_REGISTRY_PASSWORD
 ----
 
@@ -389,7 +389,7 @@ fruit-gateway.imagePullSecrets[0].name=street-java-pull-secret
 helm upgrade \
   --set fruit-service.appName=${FRUIT_SERVICE_APP_NAME} \
   --set fruit-gateway.appName=${FRUIT_GATEWAY_APP_NAME} \
-  --set fruit-gateway.image.repository=${REGISTRY}/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}@sha256 \
+  --set fruit-gateway.image.repository=${REGISTRY}/${DEV_USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}@sha256 \
   --set fruit-gateway.image.tag=${IMAGE_DIGEST} \
   --set fruit-gateway.imagePullSecrets[0].name=street-java-pull-secret \
  street-java helm/street-java
@@ -475,8 +475,8 @@ You can stop quarkus dev with `q`. Now from *T1* let's build the new image local
 
 // [source,sh,attributes]
 // ----
-// podman tag localhost/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH} ${REGISTRY}/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH}
-// podman push --tls-verify=false ${REGISTRY}/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH}
+// podman tag localhost/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH} ${REGISTRY}/${DEV_USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH}
+// podman push --tls-verify=false ${REGISTRY}/${DEV_USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH}
 // ----
 
 let's create a new `BuildConfig` this time is a binary build, from *T2*:
@@ -500,14 +500,14 @@ Copy the new image to the enterprise registry as before. Run this command from *
 ----
 skopeo copy --src-tls-verify=false \
   docker://image-registry.openshift-image-registry:5000/${PROJECT_NAME}/fruit-gateway:latest \
-  docker://${REGISTRY}/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH}
+  docker://${REGISTRY}/${DEV_USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH}
 ----
 
 Get the image digest:
 
 [source,sh,attributes]
 ----
-export IMAGE_DIGEST_RAW=$(skopeo inspect --tls-verify=false docker://${REGISTRY}/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH} | jq -r .Digest)
+export IMAGE_DIGEST_RAW=$(skopeo inspect --tls-verify=false docker://${REGISTRY}/${DEV_USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}:${GIT_HASH} | jq -r .Digest)
 export IMAGE_DIGEST=${IMAGE_DIGEST_RAW:7}
 echo "IMAGE_DIGEST_MONITORING = ${IMAGE_DIGEST}"
 ----
@@ -519,7 +519,7 @@ Let's upgrade, this time the image should expose metrics:
 helm upgrade \
   --set fruit-service.appName=${FRUIT_SERVICE_APP_NAME} \
   --set fruit-gateway.appName=${FRUIT_GATEWAY_APP_NAME} \
-  --set fruit-gateway.image.repository=${REGISTRY}/${USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}@sha256 \
+  --set fruit-gateway.image.repository=${REGISTRY}/${DEV_USERNAME}/${PROJECT_ID}-${ARTIFACT_ID}@sha256 \
   --set fruit-gateway.image.tag=${IMAGE_DIGEST} \
   --set fruit-gateway.imagePullSecrets[0].name=street-java-pull-secret \
  street-java helm/street-java
