@@ -24,6 +24,6 @@ fruit-service:
   imagePullSecrets: []
   env:
   - name: JAVA_OPTS
-    value: "-Dspring.profiles.active=openshift -Xms192m -Xmx768m"
+    value: "-Dspring.profiles.active=openshift -Dspring.sleuth.otel.config.trace-id-ratio-based=1.0 -Xms192m -Xmx768m"
   - name: OTL_ENDPOINT
     value: http://jaeger-all-in-one-inmemory-collector-headless.street-java-infra:4317
