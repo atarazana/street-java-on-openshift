@@ -1,0 +1,122 @@
+
+If production
+
+[source,bash]
+----
+oc apply -f - <<EOF
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    k8s-app: prometheus
+  name: jaeger-monitor
+spec:
+  endpoints:
+    - interval: 30s
+      path: /metrics
+      port: http
+  namespaceSelector:
+    matchNames:
+    - ${PROJECT_NAME}
+  selector:
+    matchLabels:
+      app: jaeger
+      app.kubernetes.io/component: collector
+      app.kubernetes.io/instance: simple-prod
+      app.kubernetes.io/managed-by: jaeger-operator
+      app.kubernetes.io/name: simple-prod-collector
+      app.kubernetes.io/part-of: jaeger
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: simple-prod-collector-metrics
+  labels:
+    app: jaeger
+    app.kubernetes.io/component: service-collector
+    app.kubernetes.io/instance: simple-prod
+    app.kubernetes.io/managed-by: jaeger-operator
+    app.kubernetes.io/name: simple-prod-collector
+    app.kubernetes.io/part-of: jaeger
+spec:
+  ipFamilies:
+    - IPv4
+  ports:
+    - name: prometheus
+      protocol: TCP
+      port: 14269
+      targetPort: 14269
+  type: ClusterIP
+  ipFamilyPolicy: SingleStack
+  sessionAffinity: None
+  selector:
+    app: jaeger
+    app.kubernetes.io/component: collector
+    app.kubernetes.io/instance: simple-prod
+    app.kubernetes.io/managed-by: jaeger-operator
+    app.kubernetes.io/name: simple-prod-collector
+    app.kubernetes.io/part-of: jaeger
+EOF
+----
+
+else
+
+[source,bash]
+----
+oc apply -f - <<EOF
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    k8s-app: prometheus
+  name: jaeger-monitor
+  namespace: street-java-infra
+spec:
+  endpoints:
+    - interval: 30s
+      path: /metrics
+      port: prometheus
+  namespaceSelector:
+    matchNames:
+    - street-java-infra
+  selector:
+    matchLabels:
+      app: jaeger
+      app.kubernetes.io/component: all-in-one
+      app.kubernetes.io/instance: jaeger-all-in-one-inmemory
+      app.kubernetes.io/managed-by: jaeger-operator
+      app.kubernetes.io/name: jaeger-all-in-one-inmemory
+      app.kubernetes.io/part-of: jaeger
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: simple-prod-collector-metrics
+  namespace: street-java-infra
+  labels:
+    app: jaeger
+    app.kubernetes.io/component: all-in-one
+    app.kubernetes.io/instance: jaeger-all-in-one-inmemory
+    app.kubernetes.io/managed-by: jaeger-operator
+    app.kubernetes.io/name: jaeger-all-in-one-inmemory
+    app.kubernetes.io/part-of: jaeger
+spec:
+  ipFamilies:
+    - IPv4
+  ports:
+    - name: prometheus
+      protocol: TCP
+      port: 14269
+      targetPort: 14269
+  type: ClusterIP
+  ipFamilyPolicy: SingleStack
+  sessionAffinity: None
+  selector:
+    app: jaeger
+    app.kubernetes.io/component: all-in-one
+    app.kubernetes.io/instance: jaeger-all-in-one-inmemory
+    app.kubernetes.io/managed-by: jaeger-operator
+    app.kubernetes.io/name: jaeger-all-in-one-inmemory
+    app.kubernetes.io/part-of: jaeger
+EOF
+----
